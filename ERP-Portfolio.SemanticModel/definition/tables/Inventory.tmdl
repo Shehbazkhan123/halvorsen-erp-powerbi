@@ -1,0 +1,82 @@
+/// Month-end inventory snapshot by product and warehouse (34 months x 120 products x 5 warehouses). Semi-additive: sum across products/warehouses, take the last snapshot over time.
+table Inventory
+	lineageTag: 131b9a0b-78d8-4632-9a83-e67be0c5827e
+
+	column 'Snapshot Date'
+		dataType: dateTime
+		isHidden
+		formatString: yyyy-mm-dd
+		lineageTag: 50353fa0-023f-452b-bedf-e8e21575f527
+		summarizeBy: none
+		sourceColumn: Snapshot Date
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		lineageTag: fe7aa66e-bd7c-4948-a175-571842e22a5a
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+	column WarehouseKey
+		dataType: int64
+		isHidden
+		lineageTag: 662f32b1-8e13-49f9-bf7c-99698b2fccba
+		summarizeBy: none
+		sourceColumn: WarehouseKey
+
+	column 'On Hand Qty'
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: 94c15055-09f1-4c93-9365-300c0e087cd6
+		summarizeBy: none
+		sourceColumn: On Hand Qty
+
+	column 'Unit Cost'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.00
+		lineageTag: 3e180730-7b26-42b1-838a-d512c426485b
+		summarizeBy: none
+		sourceColumn: Unit Cost
+
+	column 'Inventory Value'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.00
+		lineageTag: c7faa496-c05f-46f7-a9ca-86c46a9b6157
+		summarizeBy: none
+		sourceColumn: Inventory Value
+
+	column 'Is Below Reorder Point'
+		dataType: boolean
+		lineageTag: 1c19f6b8-7d72-45ce-8dbf-08b04638ceba
+		summarizeBy: none
+		sourceColumn: Is Below Reorder Point
+
+	partition Inventory = m
+		mode: import
+		source =
+				let
+				    Months = List.Transform({0..33}, (m) => Date.EndOfMonth(Date.AddMonths(#date(2024, 1, 1), m))),
+				    Rows = List.Combine(List.Transform({0..33}, (m) =>
+				        List.Combine(List.Transform({1..120}, (p) =>
+				            List.Transform({1..5}, (w) =>
+				                let
+				                    i = m * 1000 + p * 5 + w,
+				                    qty = 10 + Number.RoundDown(fnRand(i, 71) * 250),
+				                    cost = fnProductCost(p)
+				                in [
+				                    #"Snapshot Date" = Months{m},
+				                    ProductKey = p,
+				                    WarehouseKey = w,
+				                    #"On Hand Qty" = qty,
+				                    #"Unit Cost" = cost,
+				                    #"Inventory Value" = Number.Round(qty * cost, 2),
+				                    #"Is Below Reorder Point" = qty < fnProductReorderPoint(p)
+				                ]))))),
+				    Source = Table.FromRecords(Rows),
+				    Typed = Table.TransformColumnTypes(Source, {{"Snapshot Date", type date}, {"ProductKey", Int64.Type}, {"WarehouseKey", Int64.Type}, {"On Hand Qty", Int64.Type}, {"Unit Cost", Currency.Type}, {"Inventory Value", Currency.Type}, {"Is Below Reorder Point", type logical}})
+				in
+				    Typed
+

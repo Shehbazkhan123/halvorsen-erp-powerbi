@@ -1,0 +1,41 @@
+{
+    "dataRoles": [
+        {
+            "displayName": "Insight text",
+            "name": "text",
+            "kind": "Measure",
+            "description": "A text measure. Mark highlights with [*accent], [+favorable] and [-unfavorable]."
+        }
+    ],
+    "dataViewMappings": [
+        {
+            "conditions": [{ "text": { "max": 1 } }],
+            "single": { "role": "text" }
+        }
+    ],
+    "objects": {
+        "text": {
+            "properties": {
+                "fontSize": { "type": { "formatting": { "fontSize": true } } },
+                "color": { "type": { "fill": { "solid": { "color": true } } } },
+                "accentColor": { "type": { "fill": { "solid": { "color": true } } } },
+                "goodColor": { "type": { "fill": { "solid": { "color": true } } } },
+                "badColor": { "type": { "fill": { "solid": { "color": true } } } }
+            }
+        },
+        "chip": {
+            "properties": {
+                "show": { "type": { "bool": true } },
+                "label": { "type": { "text": true } },
+                "color": { "type": { "fill": { "solid": { "color": true } } } }
+            }
+        },
+        "animation": {
+            "properties": {
+                "show": { "type": { "bool": true } },
+                "duration": { "type": { "numeric": true } }
+            }
+        }
+    },
+    "privileges": []
+}

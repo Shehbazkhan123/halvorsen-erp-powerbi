@@ -1,0 +1,76 @@
+/// General ledger chart of accounts (income statement). Sign is +1 for revenue and -1 for costs/expenses, used to compute Net Income.
+table Account
+	lineageTag: e2e0b6de-95de-4d7c-a3d9-6c386015fd37
+
+	column AccountKey
+		dataType: int64
+		isHidden
+		isKey
+		lineageTag: 93a7bd93-350b-4522-8610-9d73578e0f31
+		summarizeBy: none
+		sourceColumn: AccountKey
+
+	column 'Account Number'
+		dataType: string
+		lineageTag: 717866dd-db75-47a3-bffa-de48ae889538
+		summarizeBy: none
+		sourceColumn: Account Number
+
+	column 'Account Name'
+		dataType: string
+		lineageTag: 2a884456-a8c7-4cd8-95ac-fa1c05d81e2a
+		summarizeBy: none
+		sourceColumn: Account Name
+		sortByColumn: 'Account Sort'
+
+	column 'Account Type'
+		dataType: string
+		lineageTag: a09a6436-b4c0-4a0d-b064-509b604ff348
+		summarizeBy: none
+		sourceColumn: Account Type
+		sortByColumn: 'Account Type Sort'
+
+	column 'Account Type Sort'
+		dataType: int64
+		isHidden
+		lineageTag: 19a260fa-7801-4065-9256-d771ca959f3d
+		summarizeBy: none
+		sourceColumn: Account Type Sort
+
+	column 'Account Sort'
+		dataType: int64
+		isHidden
+		lineageTag: 1eb7990f-0bc7-4dc9-bfcb-2797a88e7875
+		summarizeBy: none
+		sourceColumn: Account Sort
+
+	column Sign
+		dataType: int64
+		isHidden
+		lineageTag: 31e0e770-a937-4d2b-ad38-71ea884e7a00
+		summarizeBy: none
+		sourceColumn: Sign
+
+	partition Account = m
+		mode: import
+		source =
+				let
+				    Source = #table(
+				        type table [AccountKey = Int64.Type, #"Account Number" = text, #"Account Name" = text, #"Account Type" = text, #"Account Type Sort" = Int64.Type, #"Account Sort" = Int64.Type, Sign = Int64.Type],
+				        {
+				            {1, "4000", "Product Revenue", "Revenue", 1, 1, 1},
+				            {2, "4100", "Service Revenue", "Revenue", 1, 2, 1},
+				            {3, "5000", "Cost of Goods Sold", "Cost of Sales", 2, 3, -1},
+				            {4, "5100", "Freight & Logistics", "Cost of Sales", 2, 4, -1},
+				            {5, "6000", "Salaries & Wages", "Operating Expense", 3, 5, -1},
+				            {6, "6100", "Rent & Facilities", "Operating Expense", 3, 6, -1},
+				            {7, "6200", "Marketing", "Operating Expense", 3, 7, -1},
+				            {8, "6300", "IT & Software", "Operating Expense", 3, 8, -1},
+				            {9, "6400", "Travel & Entertainment", "Operating Expense", 3, 9, -1},
+				            {10, "6500", "Professional Fees", "Operating Expense", 3, 10, -1},
+				            {11, "6600", "Depreciation", "Operating Expense", 3, 11, -1},
+				            {12, "7000", "Interest Expense", "Other Expense", 4, 12, -1}
+				        })
+				in
+				    Source
+

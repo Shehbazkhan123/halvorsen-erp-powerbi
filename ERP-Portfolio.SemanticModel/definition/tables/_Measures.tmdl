@@ -1,0 +1,536 @@
+/// Home table for all model measures, organized by display folder (Sales, Purchasing, Inventory, Finance, HR).
+table _Measures
+	lineageTag: ca7449bf-cd79-41d5-a502-f1eee9768768
+
+	/// Net sales revenue after line discounts, by order date.
+	measure Revenue = SUM ( Sales[Net Amount] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 1. Sales
+		lineageTag: d71a4caa-ef4b-489e-9a55-41a0fd547563
+
+	/// Sales at list price before discounts (Quantity x Unit Price).
+	measure 'Gross Sales' = SUM ( Sales[Gross Amount] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 1. Sales
+		lineageTag: e6312acd-2d96-4d80-8257-aa619015df65
+
+	/// Value of discounts given: Gross Sales minus Revenue.
+	measure 'Discount Amount' = [Gross Sales] - [Revenue]
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 1. Sales
+		lineageTag: fc3fa75f-ceae-4974-ad1e-be1a96080c8f
+
+	/// Cost of goods sold at standard product cost (Quantity x Unit Cost).
+	measure COGS = SUM ( Sales[Cost Amount] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 1. Sales
+		lineageTag: 5ee5d787-b173-4377-a851-5bf5e3948673
+
+	/// Revenue minus cost of goods sold.
+	measure 'Gross Profit' = [Revenue] - [COGS]
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 1. Sales
+		lineageTag: febbadb5-6837-4c00-ab50-ee82482e9fe5
+
+	/// Gross Profit as a share of Revenue.
+	measure 'Gross Margin %' = DIVIDE ( [Gross Profit], [Revenue] )
+		formatString: 0.0%
+		displayFolder: 1. Sales
+		lineageTag: 55ed0c46-e567-4218-9df9-0fda3b0386f3
+
+	/// Number of distinct sales orders.
+	measure Orders = DISTINCTCOUNT ( Sales[Order Number] )
+		formatString: #,0
+		displayFolder: 1. Sales
+		lineageTag: 2985c7b5-1a9a-4eb3-8b07-cb3651aec678
+
+	/// Total units sold across all order lines.
+	measure 'Units Sold' = SUM ( Sales[Quantity] )
+		formatString: #,0
+		displayFolder: 1. Sales
+		lineageTag: 8b546398-e498-4a53-8f7f-dbd1c5e902d5
+
+	/// Average revenue per sales order (Revenue / Orders).
+	measure 'Avg Order Value' = DIVIDE ( [Revenue], [Orders] )
+		formatString: \$#,0.00
+		displayFolder: 1. Sales
+		lineageTag: 6dbf5336-4c0a-4c39-ad80-4e346c2fba8b
+
+	/// Customers with at least one order in the selected period.
+	measure 'Active Customers' = DISTINCTCOUNT ( Sales[CustomerKey] )
+		formatString: #,0
+		displayFolder: 1. Sales
+		lineageTag: a2a6e046-7d39-4e45-8492-be759d8e404b
+
+	/// Orders not yet shipped as of the data as-of date (2026-10-31).
+	measure 'Open Orders' = CALCULATE ( [Orders], Sales[Order Status] = "Open" )
+		formatString: #,0
+		displayFolder: 1. Sales
+		lineageTag: 9642048f-077c-4e2a-becb-4e2d251e84c3
+
+	/// Share of shipped orders that shipped within the 5-day promise.
+	measure 'On-Time Ship %' =
+			DIVIDE (
+			    CALCULATE ( [Orders], Sales[Is On Time] = TRUE () ),
+			    CALCULATE ( [Orders], Sales[Order Status] = "Shipped" )
+			)
+		formatString: 0.0%
+		displayFolder: 1. Sales
+		lineageTag: 76a09a36-ce7c-4713-9adc-b61861e4f9c4
+
+	/// Average days from order to shipment, per shipped order (not per line).
+	measure 'Avg Days to Ship' =
+			AVERAGEX (
+			    SUMMARIZE (
+			        FILTER ( Sales, NOT ISBLANK ( Sales[Ship Days] ) ),
+			        Sales[Order Number],
+			        Sales[Ship Days]
+			    ),
+			    Sales[Ship Days]
+			)
+		formatString: #,0.0
+		displayFolder: 1. Sales
+		lineageTag: 8ab57d5a-e518-42cb-bdfc-16e1c3a307ad
+
+	/// Revenue assigned to the date it shipped instead of the order date (uses the inactive Ship Date relationship). Open orders are excluded.
+	measure 'Revenue by Ship Date' = CALCULATE ( [Revenue], USERELATIONSHIP ( Sales[Ship Date], 'Date'[Date] ) )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 1. Sales
+		lineageTag: 02f09409-f3ca-466b-bc83-6775ddec539b
+
+	/// Revenue for the same period last year. Only shifts dates up to the as-of date, so a partial current year compares like-for-like.
+	measure 'Revenue PY' =
+			CALCULATE (
+			    [Revenue],
+			    CALCULATETABLE ( DATEADD ( 'Date'[Date], -1, YEAR ), 'Date'[Is Past] = TRUE () )
+			)
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 1. Sales\Time Intelligence
+		lineageTag: cfbb76fb-b84b-4151-b91d-b1a9524fb6a6
+
+	/// Revenue change versus the same period last year. Blank when either period has no data.
+	measure 'Revenue YoY' =
+			VAR _Cur = [Revenue]
+			VAR _PY = [Revenue PY]
+			RETURN
+			    IF ( NOT ISBLANK ( _Cur ) && NOT ISBLANK ( _PY ), _Cur - _PY )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 1. Sales\Time Intelligence
+		lineageTag: c1bc029a-fa75-4740-b237-2bca551b965c
+
+	/// Revenue growth versus the same period last year.
+	measure 'Revenue YoY %' = DIVIDE ( [Revenue YoY], [Revenue PY] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 1. Sales\Time Intelligence
+		lineageTag: 6a0aaf78-2c5e-45c8-a7e0-2510d8489022
+
+	/// Calendar year-to-date revenue.
+	measure 'Revenue YTD' = CALCULATE ( [Revenue], DATESYTD ( 'Date'[Date] ) )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 1. Sales\Time Intelligence
+		lineageTag: df9491d0-fa62-4553-aa7b-c3fc031a66fe
+
+	/// Prior-year year-to-date revenue, through the same day last year.
+	measure 'Revenue PY YTD' =
+			CALCULATE (
+			    [Revenue YTD],
+			    CALCULATETABLE ( DATEADD ( 'Date'[Date], -1, YEAR ), 'Date'[Is Past] = TRUE () )
+			)
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 1. Sales\Time Intelligence
+		lineageTag: e9d20d36-4f10-4cbc-ad62-e01c54631d2f
+
+	/// Total purchase order value, by PO order date.
+	measure 'Purchase Spend' = SUM ( Purchases[Line Amount] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 2. Purchasing
+		lineageTag: ef4ea3fd-e933-43a6-ab99-fc7ab8294b24
+
+	/// Number of distinct purchase orders.
+	measure 'Purchase Orders' = DISTINCTCOUNT ( Purchases[PO Number] )
+		formatString: #,0
+		displayFolder: 2. Purchasing
+		lineageTag: af2e80d3-188e-4b25-a51d-2993d3b498e7
+
+	/// Value of PO lines not yet received as of the data as-of date.
+	measure 'Open PO Value' = CALCULATE ( [Purchase Spend], Purchases[PO Status] = "Open" )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 2. Purchasing
+		lineageTag: 6b12081e-291b-4324-be54-80c97eb7bb66
+
+	/// Average days from PO order date to receipt, for received lines.
+	measure 'Avg Lead Time (Days)' = AVERAGE ( Purchases[Lead Days] )
+		formatString: #,0.0
+		displayFolder: 2. Purchasing
+		lineageTag: 189be2bb-da41-4189-8aa5-6c8409ecb563
+
+	/// Share of received PO lines that arrived on or before the expected date.
+	measure 'Supplier On-Time %' =
+			DIVIDE (
+			    CALCULATE ( COUNTROWS ( Purchases ), Purchases[Is On Time] = TRUE () ),
+			    CALCULATE ( COUNTROWS ( Purchases ), Purchases[PO Status] = "Received" )
+			)
+		formatString: 0.0%
+		displayFolder: 2. Purchasing
+		lineageTag: 20113d6e-50e9-4865-9755-9c9d169d68a2
+
+	/// Suppliers with at least one purchase order in the selected period.
+	measure 'Active Suppliers' = DISTINCTCOUNT ( Purchases[SupplierKey] )
+		formatString: #,0
+		displayFolder: 2. Purchasing
+		lineageTag: dc0d538e-19d7-4c79-9640-ce665aa7ee3f
+
+	/// Inventory value at cost on the last month-end snapshot in the selected period (semi-additive: not summed over time).
+	measure 'Inventory Value' =
+			VAR _LastSnapshot = CALCULATE ( MAX ( Inventory[Snapshot Date] ) )
+			RETURN
+			    CALCULATE ( SUM ( Inventory[Inventory Value] ), 'Date'[Date] = _LastSnapshot )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 3. Inventory
+		lineageTag: c6d3fd29-29a5-492c-89af-e62c2b6c3ca0
+
+	/// Units on hand on the last month-end snapshot in the selected period (semi-additive).
+	measure 'Inventory Units' =
+			VAR _LastSnapshot = CALCULATE ( MAX ( Inventory[Snapshot Date] ) )
+			RETURN
+			    CALCULATE ( SUM ( Inventory[On Hand Qty] ), 'Date'[Date] = _LastSnapshot )
+		formatString: #,0
+		displayFolder: 3. Inventory
+		lineageTag: 27612237-d8c1-4bb9-aadf-75dcac09678d
+
+	/// Product-warehouse combinations below their reorder point on the last snapshot in the selected period.
+	measure 'Items Below Reorder Point' =
+			VAR _LastSnapshot = CALCULATE ( MAX ( Inventory[Snapshot Date] ) )
+			RETURN
+			    CALCULATE (
+			        COUNTROWS ( Inventory ),
+			        Inventory[Is Below Reorder Point] = TRUE (),
+			        'Date'[Date] = _LastSnapshot
+			    )
+		formatString: #,0
+		displayFolder: 3. Inventory
+		lineageTag: 995066a3-61da-4d12-9c0f-1b6fe472e7af
+
+	/// Average of month-end inventory value across the months in the selected period.
+	measure 'Avg Inventory Value' = AVERAGEX ( VALUES ( 'Date'[Year Month Number] ), [Inventory Value] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 3. Inventory
+		lineageTag: 3caeea46-8283-4099-9796-2b570eda7976
+
+	/// COGS divided by average inventory value for the selected period (not annualized). Higher means stock moves faster.
+	measure 'Inventory Turnover' = DIVIDE ( [COGS], [Avg Inventory Value] )
+		formatString: #,0.00x
+		displayFolder: 3. Inventory
+		lineageTag: c5143997-96cb-47dc-b262-06fd003c76ed
+
+	/// Average days of cost-of-sales held in inventory: average inventory value / daily COGS over the elapsed days in the period.
+	measure 'Days Inventory Outstanding' =
+			VAR _Days = CALCULATE ( COUNTROWS ( 'Date' ), 'Date'[Is Past] = TRUE () )
+			RETURN
+			    DIVIDE ( [Avg Inventory Value], DIVIDE ( [COGS], _Days ) )
+		formatString: #,0.0
+		displayFolder: 3. Inventory
+		lineageTag: dca9ac3f-0bda-4492-bed5-95e827200dc9
+
+	/// General ledger actual amount (stored positive). Use with Account to read revenue or expense lines.
+	measure 'GL Actual' = SUM ( Finance[Actual Amount] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 4. Finance
+		lineageTag: ca52cd02-47d1-46f1-8015-c54b76b3b4d3
+
+	/// General ledger budget amount (stored positive).
+	measure 'GL Budget' = SUM ( Finance[Budget Amount] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 4. Finance
+		lineageTag: 14b4780c-11b9-4748-bd57-19a5e3fbf8f2
+
+	/// Actual minus budget (raw). Positive is favorable for revenue lines and unfavorable for cost lines; see Budget Variance (Favorable).
+	measure 'Budget Variance' = [GL Actual] - [GL Budget]
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 4. Finance
+		lineageTag: f896d1a0-100b-4c28-892f-3fac8dc33a81
+
+	/// Raw budget variance as a share of budget.
+	measure 'Budget Variance %' = DIVIDE ( [Budget Variance], [GL Budget] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 4. Finance
+		lineageTag: 86760325-6b82-4ca5-a606-b8e5640235b9
+
+	/// Sign-adjusted variance: positive is always good (revenue above budget or costs below budget).
+	measure 'Budget Variance (Favorable)' =
+			SUMX (
+			    Finance,
+			    ( Finance[Actual Amount] - Finance[Budget Amount] ) * RELATED ( Account[Sign] )
+			)
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 4. Finance
+		lineageTag: b766f4a3-edc8-4a81-84c0-707328e3ff1f
+
+	/// Actual revenue booked to the general ledger.
+	measure 'GL Revenue' = CALCULATE ( [GL Actual], Account[Account Type] = "Revenue" )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 4. Finance
+		lineageTag: 1ca41e84-bdfd-404b-9312-7fba4cc4cb62
+
+	/// Actual operating expenses (salaries, rent, marketing, IT, travel, fees, depreciation).
+	measure 'GL Operating Expenses' = CALCULATE ( [GL Actual], Account[Account Type] = "Operating Expense" )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 4. Finance
+		lineageTag: d9afe040-bf4e-4456-9a6f-c9841ead3785
+
+	/// Actual revenue minus cost of sales, operating and other expenses.
+	measure 'Net Income' = SUMX ( Finance, Finance[Actual Amount] * RELATED ( Account[Sign] ) )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 4. Finance
+		lineageTag: af01b534-0652-4da8-a11e-b8ee046550d3
+
+	/// Budgeted net income.
+	measure 'Net Income Budget' = SUMX ( Finance, Finance[Budget Amount] * RELATED ( Account[Sign] ) )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 4. Finance
+		lineageTag: dcc6ce5c-7cdd-4374-9e3f-9963fe60329b
+
+	/// Net Income as a share of GL Revenue.
+	measure 'Net Margin %' = DIVIDE ( [Net Income], [GL Revenue] )
+		formatString: 0.0%
+		displayFolder: 4. Finance
+		lineageTag: 9e7aaedb-1343-4f5c-a54d-61564116b0aa
+
+	/// Employees on payroll at the end of the selected period (capped at the as-of date).
+	measure Headcount =
+			VAR _AsOf = CALCULATE ( MAX ( 'Date'[Date] ), 'Date'[Is Past] = TRUE () )
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _AsOf ),
+			        CALCULATE (
+			            COUNTROWS ( Employee ),
+			            Employee[Hire Date] <= _AsOf,
+			            FILTER (
+			                ALL ( Employee[Termination Date] ),
+			                ISBLANK ( Employee[Termination Date] ) || Employee[Termination Date] > _AsOf
+			            )
+			        )
+			    )
+		formatString: #,0
+		displayFolder: 5. HR
+		lineageTag: 714b66d4-de2b-441d-8f42-41544427b19f
+
+	/// Employees hired within the selected period.
+	measure Hires =
+			VAR _Dates = FILTER ( VALUES ( 'Date'[Date] ), NOT ISBLANK ( 'Date'[Date] ) )
+			RETURN
+			    CALCULATE ( COUNTROWS ( Employee ), TREATAS ( _Dates, Employee[Hire Date] ) )
+		formatString: #,0
+		displayFolder: 5. HR
+		lineageTag: d65314fc-30fb-4cb2-9d45-ef09da86365d
+
+	/// Employees who left within the selected period.
+	measure Terminations =
+			VAR _Dates = FILTER ( VALUES ( 'Date'[Date] ), NOT ISBLANK ( 'Date'[Date] ) )
+			RETURN
+			    CALCULATE ( COUNTROWS ( Employee ), TREATAS ( _Dates, Employee[Termination Date] ) )
+		formatString: #,0
+		displayFolder: 5. HR
+		lineageTag: bcef41fa-3997-4de8-aa91-d41692b8fdd7
+
+	/// Terminations divided by average headcount (opening + closing / 2) for the selected period.
+	measure 'Attrition %' =
+			VAR _Close = [Headcount]
+			VAR _Open = CALCULATE ( [Headcount], 'Date'[Date] = MIN ( 'Date'[Date] ) - 1 )
+			VAR _AvgHeadcount = IF ( ISBLANK ( _Open ), _Close, ( _Open + _Close ) / 2 )
+			RETURN
+			    DIVIDE ( [Terminations], _AvgHeadcount )
+		formatString: 0.0%
+		displayFolder: 5. HR
+		lineageTag: 3f5ac4f7-ae3b-470b-b4c8-aa81e4fc8816
+
+	/// Shows the metric picked in the Metric slicer (defaults to Revenue). Format string follows the selected metric.
+	measure 'Selected Metric' =
+			VAR _Metric = SELECTEDVALUE ( Metric[Metric], "Revenue" )
+			RETURN
+			    SWITCH (
+			        _Metric,
+			        "Revenue", [Revenue],
+			        "Gross Profit", [Gross Profit],
+			        "Orders", [Orders],
+			        "Units Sold", [Units Sold],
+			        "Avg Order Value", [Avg Order Value]
+			    )
+		displayFolder: 0. Dynamic
+		lineageTag: 4e47af00-e7fb-41e0-83e2-eaa29e99b59f
+
+		formatStringDefinition =
+				VAR _Metric = SELECTEDVALUE ( Metric[Metric], "Revenue" )
+				RETURN
+				    SWITCH (
+				        _Metric,
+				        "Orders", "#,0",
+				        "Units Sold", "#,0",
+				        "Avg Order Value", "\$#,0.00",
+				        "\$#,0;(\$#,0);\$#,0"
+				    )
+
+	/// Name of the metric picked in the Metric slicer (defaults to Revenue). Used for dynamic visual titles.
+	measure 'Selected Metric Name' = SELECTEDVALUE ( Metric[Metric], "Revenue" )
+		formatString: @
+		displayFolder: 0. Dynamic
+		lineageTag: b7102341-c488-442e-b86e-9c4e8a59a7bf
+
+	/// Dynamic title for the category ranking chart.
+	measure 'Title Ranking' = [Selected Metric Name] & " ranking by product category"
+		formatString: @
+		displayFolder: 0. Dynamic
+		lineageTag: 049a2d90-1092-4c01-b660-c133a92ef173
+
+	/// Dynamic title for the decomposition tree.
+	measure 'Title Drivers' = [Selected Metric Name] & " drivers: region, segment, category, product"
+		formatString: @
+		displayFolder: 0. Dynamic
+		lineageTag: 6c794530-4e14-49b0-b7e9-b46718d71de2
+
+	/// Dynamic title for the customer scatter.
+	measure 'Title Customers' = "Customers: orders vs " & LOWER ( [Selected Metric Name] ) & " (size = gross profit)"
+		formatString: @
+		displayFolder: 0. Dynamic
+		lineageTag: e16b3a2a-0590-4233-a8e8-c347bd7bf157
+
+	/// Narrative for the Overview page. Markup for the Insight Text visual: [*accent], [+favorable], [-unfavorable].
+	measure 'Story Overview' =
+			VAR _Rev = [Revenue]
+			VAR _Yoy = [Revenue YoY %]
+			VAR _NI = [Net Income]
+			VAR _Gap = [Net Income] - [Net Income Budget]
+			VAR _OnTime = [Supplier On-Time %]
+			VAR _RevTxt = IF ( ABS ( _Rev ) >= 1e6, FORMAT ( _Rev / 1e6, "$#,0.0" ) & "M", FORMAT ( _Rev / 1e3, "$#,0" ) & "K" )
+			VAR _NITxt = IF ( ABS ( _NI ) >= 1e6, FORMAT ( _NI / 1e6, "$#,0.0" ) & "M", FORMAT ( _NI / 1e3, "$#,0" ) & "K" )
+			VAR _GapTxt = FORMAT ( ABS ( _Gap ) / 1e3, "$#,0" ) & "K"
+			RETURN
+			    IF (
+			        ISBLANK ( _Rev ),
+			        "No sales in the selected period.",
+			        "Revenue reached [*" & _RevTxt & "]"
+			            & IF ( NOT ISBLANK ( _Yoy ), ", " & IF ( _Yoy >= 0, "[+up ", "[-down " ) & FORMAT ( ABS ( _Yoy ), "0.0%" ) & "] on last year", "" )
+			            & ". Net income of [*" & _NITxt & "] "
+			            & IF ( _Gap >= 0, "[+beat budget by " & _GapTxt & "]", "[-missed budget by " & _GapTxt & "]" )
+			            & ". Supplier on-time delivery at " & IF ( _OnTime < 0.8, "[-", "[+" ) & FORMAT ( _OnTime, "0.0%" ) & "] is "
+			            & IF ( _OnTime < 0.8, "the main operational risk.", "on track." )
+			    )
+		formatString: @
+		displayFolder: 0. Story
+		lineageTag: 6c0344ef-554f-422d-a99d-bf10311f8b9b
+
+	/// Narrative for the Sales page: leading category and region, margin and order profile.
+	measure 'Story Sales' =
+			VAR _Rev = [Revenue]
+			VAR _TopCat = MAXX ( TOPN ( 1, VALUES ( 'Product'[Category] ), [Revenue] ), 'Product'[Category] )
+			VAR _TopShare = DIVIDE ( CALCULATE ( [Revenue], 'Product'[Category] = _TopCat ), _Rev )
+			VAR _TopRegion = MAXX ( TOPN ( 1, VALUES ( Customer[Region] ), [Revenue] ), Customer[Region] )
+			VAR _RegionShare = DIVIDE ( CALCULATE ( [Revenue], Customer[Region] = _TopRegion ), _Rev )
+			RETURN
+			    IF (
+			        ISBLANK ( _Rev ),
+			        "No sales in the selected period.",
+			        "[*" & _TopCat & "] leads the portfolio with [*" & FORMAT ( _TopShare, "0%" ) & "] of revenue, and the [*" & _TopRegion
+			            & "] region contributes " & FORMAT ( _RegionShare, "0%" ) & ". Gross margin holds at [+" & FORMAT ( [Gross Margin %], "0.0%" )
+			            & "] across " & FORMAT ( [Orders], "#,0" ) & " orders averaging " & FORMAT ( [Avg Order Value], "$#,0" ) & "."
+			    )
+		formatString: @
+		displayFolder: 0. Story
+		lineageTag: 6080fc3b-a3e0-4681-80ed-74df45ad098f
+
+	/// Narrative for the Customers page: revenue concentration (top 20% of buyers), best segment and largest account.
+	measure 'Story Customers' =
+			VAR _Rev = [Revenue]
+			VAR _Buyers = FILTER ( VALUES ( Customer[CustomerKey] ), NOT ISBLANK ( [Revenue] ) )
+			VAR _N = COUNTROWS ( _Buyers )
+			VAR _TopN = MAX ( 1, ROUNDUP ( _N * 0.2, 0 ) )
+			VAR _TopRev = SUMX ( TOPN ( _TopN, _Buyers, [Revenue] ), [Revenue] )
+			VAR _Share = DIVIDE ( _TopRev, _Rev )
+			VAR _TopSeg = MAXX ( TOPN ( 1, VALUES ( Customer[Segment] ), [Revenue] ), Customer[Segment] )
+			VAR _Best = MAXX ( TOPN ( 1, VALUES ( Customer[Customer Name] ), [Revenue] ), Customer[Customer Name] )
+			RETURN
+			    IF (
+			        ISBLANK ( _Rev ),
+			        "No customer activity in the selected period.",
+			        "The top 20% of customers ([*" & FORMAT ( _TopN, "#,0" ) & " accounts]) generate [*" & FORMAT ( _Share, "0%" )
+			            & "] of revenue. [*" & _TopSeg & "] is the most valuable segment and [*" & _Best & "] the largest single account, out of "
+			            & FORMAT ( _N, "#,0" ) & " active buyers."
+			    )
+		formatString: @
+		displayFolder: 0. Story
+		lineageTag: fe15780b-e148-4ca9-9ebd-3e48d6ecfc60
+
+	/// Narrative for the Operations page: supplier reliability, least reliable supplier and stock below reorder point.
+	measure 'Story Operations' =
+			VAR _OnTime = [Supplier On-Time %]
+			VAR _Lead = [Avg Lead Time (Days)]
+			VAR _Below = [Items Below Reorder Point]
+			VAR _Last = CALCULATE ( MAX ( Inventory[Snapshot Date] ) )
+			VAR _Positions = CALCULATE ( COUNTROWS ( Inventory ), 'Date'[Date] = _Last )
+			VAR _Worst = MAXX ( TOPN ( 1, FILTER ( VALUES ( Supplier[Supplier Name] ), NOT ISBLANK ( [Supplier On-Time %] ) ), [Supplier On-Time %], ASC ), Supplier[Supplier Name] )
+			VAR _WorstRate = CALCULATE ( [Supplier On-Time %], Supplier[Supplier Name] = _Worst )
+			RETURN
+			    IF (
+			        ISBLANK ( _OnTime ),
+			        "No purchase receipts in the selected period.",
+			        "Suppliers deliver on time " & IF ( _OnTime < 0.8, "[-", "[+" ) & FORMAT ( _OnTime, "0.0%" ) & "] of the time, with an average lead time of [*"
+			            & FORMAT ( _Lead, "0.0" ) & " days]. [-" & _Worst & "] is the least reliable at " & FORMAT ( _WorstRate, "0%" ) & ". "
+			            & IF ( DIVIDE ( _Below, _Positions ) > 0.1, "[-", "[+" ) & FORMAT ( _Below, "#,0" ) & " of " & FORMAT ( _Positions, "#,0" )
+			            & " stock positions] are below their reorder point."
+			    )
+		formatString: @
+		displayFolder: 0. Story
+		lineageTag: dce8c199-2b34-4b0c-b41a-b21b50782dc9
+
+	/// Narrative for the Finance page: net income, margin, budget variance and the departments driving it.
+	measure 'Story Finance' =
+			VAR _NI = [Net Income]
+			VAR _M = [Net Margin %]
+			VAR _Fav = [Budget Variance (Favorable)]
+			VAR _NITxt = IF ( ABS ( _NI ) >= 1e6, FORMAT ( _NI / 1e6, "$#,0.0" ) & "M", FORMAT ( _NI / 1e3, "$#,0" ) & "K" )
+			VAR _FavTxt = FORMAT ( ABS ( _Fav ) / 1e3, "$#,0" ) & "K"
+			VAR _Best = MAXX ( TOPN ( 1, VALUES ( Department[Department] ), [Budget Variance (Favorable)], DESC ), Department[Department] )
+			VAR _Worst = MAXX ( TOPN ( 1, VALUES ( Department[Department] ), [Budget Variance (Favorable)], ASC ), Department[Department] )
+			VAR _WorstVar = CALCULATE ( [Budget Variance (Favorable)], Department[Department] = _Worst )
+			RETURN
+			    IF (
+			        ISBLANK ( _NI ),
+			        "No ledger activity in the selected period.",
+			        "Net income of [*" & _NITxt & "] at a [*" & FORMAT ( _M, "0.0%" ) & "] net margin, "
+			            & IF ( _Fav >= 0, "[+" & _FavTxt & " ahead of budget]", "[-" & _FavTxt & " behind budget]" )
+			            & ". [+" & _Best & "] delivered the most favorable variance"
+			            & IF ( _WorstVar < 0, ", while [-" & _Worst & "] is the biggest drag.", "." )
+			    )
+		formatString: @
+		displayFolder: 0. Story
+		lineageTag: 2e3b0b92-4aa6-4b78-aad7-7aeb82988217
+
+	/// Narrative for the People page: headcount, hires and exits, attrition and largest team.
+	measure 'Story People' =
+			VAR _HC = [Headcount]
+			VAR _H = [Hires] + 0
+			VAR _T = [Terminations] + 0
+			VAR _A = COALESCE ( [Attrition %], 0 )
+			VAR _Big = MAXX ( TOPN ( 1, VALUES ( Department[Department] ), [Headcount] ), Department[Department] )
+			RETURN
+			    IF (
+			        ISBLANK ( _HC ),
+			        "No workforce data for the selected period.",
+			        "Headcount stands at [*" & FORMAT ( _HC, "#,0" ) & "] after [+" & FORMAT ( _H, "#,0" ) & " hires] and [-" & FORMAT ( _T, "#,0" )
+			            & " exits], a net change of " & FORMAT ( _H - _T, "+#,0;-#,0;0" ) & ". Attrition is " & IF ( _A > 0.1, "[-", "[+" )
+			            & FORMAT ( _A, "0.0%" ) & "], and [*" & _Big & "] is the largest team."
+			    )
+		formatString: @
+		displayFolder: 0. Story
+		lineageTag: fd847863-051f-40a1-af6f-1773ce2502a1
+
+	column Placeholder
+		isHidden
+		lineageTag: 6227117b-3d7e-415c-bc2a-0dbca295baf7
+		isNameInferred
+		sourceColumn: [Placeholder]
+
+	partition _Measures = calculated
+		mode: import
+		source = ROW("Placeholder", BLANK())
+

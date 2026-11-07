@@ -1,0 +1,151 @@
+/// Purchase order lines (~8k, Jan 2024 - Oct 2026). Grain: one row per PO line; each PO goes to one supplier. Received Date is blank and PO Status = Open when not yet received as of 2026-10-31.
+table Purchases
+	lineageTag: cecda851-eece-4170-b567-1b99efb12cae
+
+	column 'PO Line Key'
+		dataType: int64
+		isHidden
+		lineageTag: 7f16feab-db25-474b-b32b-c30eb0635bbb
+		summarizeBy: none
+		sourceColumn: PO Line Key
+
+	column 'PO Number'
+		dataType: string
+		lineageTag: 8973d5da-924d-47ce-a6c0-7b43e0d7aa73
+		summarizeBy: none
+		sourceColumn: PO Number
+
+	column 'Order Date'
+		dataType: dateTime
+		isHidden
+		formatString: yyyy-mm-dd
+		lineageTag: fc06ce3a-a097-477a-825f-615034a4222f
+		summarizeBy: none
+		sourceColumn: Order Date
+
+	column 'Expected Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 5060eb45-feb2-4ec0-85fd-2aec26672a03
+		summarizeBy: none
+		sourceColumn: Expected Date
+
+	column 'Received Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 5bd9969c-2b59-4637-a2dc-ac4e15f318b4
+		summarizeBy: none
+		sourceColumn: Received Date
+
+	column SupplierKey
+		dataType: int64
+		isHidden
+		lineageTag: 15efbbbb-902d-4143-bfe5-d1fad72a404b
+		summarizeBy: none
+		sourceColumn: SupplierKey
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		lineageTag: 0b6589d8-71f0-4d7a-b03b-9c310dee701e
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+	column WarehouseKey
+		dataType: int64
+		isHidden
+		lineageTag: 794883c4-6f41-46f7-b581-1d74ddab02af
+		summarizeBy: none
+		sourceColumn: WarehouseKey
+
+	column Quantity
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: dccc876f-7113-4d66-b061-75a4c7514d18
+		summarizeBy: sum
+		sourceColumn: Quantity
+
+	column 'Unit Cost'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.00
+		lineageTag: f873e9b7-62f0-4d33-811f-d487e27bc3cb
+		summarizeBy: none
+		sourceColumn: Unit Cost
+
+	column 'Line Amount'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.00
+		lineageTag: b795264e-2650-4e54-b68c-70686ccf442d
+		summarizeBy: sum
+		sourceColumn: Line Amount
+
+	column 'PO Status'
+		dataType: string
+		lineageTag: 65a9fe12-bb49-49fa-a06b-94560e7a4b4a
+		summarizeBy: none
+		sourceColumn: PO Status
+
+	column 'Lead Days'
+		dataType: int64
+		isHidden
+		lineageTag: a6e3f82b-049c-4945-98b3-b3b8f80d58d1
+		summarizeBy: none
+		sourceColumn: Lead Days
+
+	column 'Is On Time'
+		dataType: boolean
+		lineageTag: 39bad7cc-3265-4dc5-8ef0-460db08e3119
+		summarizeBy: none
+		sourceColumn: Is On Time
+
+	partition Purchases = m
+		mode: import
+		source =
+				let
+				    NPO = 4000,
+				    StartDate = #date(2024, 1, 1),
+				    Span = 1035,
+				    AsOf = #date(2026, 10, 31),
+				    Lines = List.Combine(List.Transform({1..NPO}, (o) =>
+				        let
+				            orderDate = Date.AddDays(StartDate, Number.RoundDown(Number.Power(fnRand(o, 51), 0.8) * Span)),
+				            wh = 1 + Number.RoundDown(fnRand(o, 52) * 5),
+				            nLines = 1 + Number.RoundDown(fnRand(o, 53) * 3),
+				            supplier = 1 + Number.RoundDown(fnRand(o, 54) * 40),
+				            offset = Number.RoundDown(fnRand(o, 55) * 3),
+				            lead = fnSupplierLeadDays(supplier),
+				            expected = Date.AddDays(orderDate, lead)
+				        in
+				            List.Transform({1..nLines}, (l) =>
+				                let
+				                    i = o * 10 + l,
+				                    p = supplier + 40 * Number.Mod(l - 1 + offset, 3),
+				                    delay = Number.RoundDown(Number.Power(fnRand(i, 56), 4) * 15) - 3,
+				                    received = Date.AddDays(orderDate, List.Max({1, lead + delay})),
+				                    isReceived = received <= AsOf,
+				                    qty = 20 + Number.RoundDown(fnRand(i, 57) * 200),
+				                    unitCost = Number.Round(fnProductCost(p) * (0.95 + fnRand(i, 58) * 0.1), 2)
+				                in [
+				                    #"PO Line Key" = i,
+				                    #"PO Number" = "PO-" & Text.PadStart(Text.From(o), 6, "0"),
+				                    #"Order Date" = orderDate,
+				                    #"Expected Date" = expected,
+				                    #"Received Date" = if isReceived then received else null,
+				                    SupplierKey = supplier,
+				                    ProductKey = p,
+				                    WarehouseKey = wh,
+				                    Quantity = qty,
+				                    #"Unit Cost" = unitCost,
+				                    #"Line Amount" = Number.Round(qty * unitCost, 2),
+				                    #"PO Status" = if isReceived then "Received" else "Open",
+				                    #"Lead Days" = if isReceived then Duration.Days(received - orderDate) else null,
+				                    #"Is On Time" = if isReceived then received <= expected else null
+				                ]))),
+				    Source = Table.FromRecords(Lines),
+				    Typed = Table.TransformColumnTypes(Source, {{"PO Line Key", Int64.Type}, {"PO Number", type text}, {"Order Date", type date}, {"Expected Date", type date}, {"Received Date", type date}, {"SupplierKey", Int64.Type}, {"ProductKey", Int64.Type}, {"WarehouseKey", Int64.Type}, {"Quantity", Int64.Type}, {"Unit Cost", Currency.Type}, {"Line Amount", Currency.Type}, {"PO Status", type text}, {"Lead Days", Int64.Type}, {"Is On Time", type logical}})
+				in
+				    Typed
+

@@ -1,0 +1,66 @@
+/// Suppliers (40). Each supplier provides 3 products (ProductKey = SupplierKey + 40*n).
+table Supplier
+	lineageTag: 0e086180-b678-48df-b0e4-4f5185a24780
+
+	column SupplierKey
+		dataType: int64
+		isHidden
+		isKey
+		lineageTag: 6d2da14b-f976-4b7e-9725-d71b77d7f422
+		summarizeBy: none
+		sourceColumn: SupplierKey
+
+	column 'Supplier Code'
+		dataType: string
+		lineageTag: 9f5141b1-6fed-435c-822a-14252fb5271b
+		summarizeBy: none
+		sourceColumn: Supplier Code
+
+	column 'Supplier Name'
+		dataType: string
+		lineageTag: bebae2ed-474a-4a94-bf80-7511614ec354
+		summarizeBy: none
+		sourceColumn: Supplier Name
+
+	column Country
+		dataType: string
+		lineageTag: d604fc13-89a8-4f3c-b700-6589f45bbb77
+		dataCategory: Country
+		summarizeBy: none
+		sourceColumn: Country
+
+	column 'Payment Terms'
+		dataType: string
+		lineageTag: f69e5713-4b4d-4c4a-aa58-ef5b403b662d
+		summarizeBy: none
+		sourceColumn: Payment Terms
+
+	column 'Standard Lead Days'
+		dataType: int64
+		lineageTag: 1de9b818-e268-4483-8291-d4bf8784e53d
+		summarizeBy: none
+		sourceColumn: Standard Lead Days
+
+	partition Supplier = m
+		mode: import
+		source =
+				let
+				    N = 40,
+				    Names1 = {"Global", "Pacific", "Northern", "Eastern", "United", "Allied", "Premier", "Metro"},
+				    Names2 = {"Components", "Manufacturing", "Distributors", "Imports", "Materials"},
+				    Countries = {"United States", "China", "Germany", "Mexico", "India", "Vietnam", "Japan"},
+				    Terms = {"Net 30", "Net 45", "Net 60"},
+				    Pick = (lst as list, r as number) => lst{Number.RoundDown(r * List.Count(lst))},
+				    Rows = List.Transform({1..N}, (s) => [
+				        SupplierKey = s,
+				        #"Supplier Code" = "S" & Text.PadStart(Text.From(s), 3, "0"),
+				        #"Supplier Name" = Pick(Names1, fnRand(s, 32)) & " " & Pick(Names2, fnRand(s, 33)) & " " & Text.From(s),
+				        Country = Pick(Countries, fnRand(s, 34)),
+				        #"Payment Terms" = Pick(Terms, fnRand(s, 35)),
+				        #"Standard Lead Days" = fnSupplierLeadDays(s)
+				    ]),
+				    Source = Table.FromRecords(Rows),
+				    Typed = Table.TransformColumnTypes(Source, {{"SupplierKey", Int64.Type}, {"Supplier Code", type text}, {"Supplier Name", type text}, {"Country", type text}, {"Payment Terms", type text}, {"Standard Lead Days", Int64.Type}})
+				in
+				    Typed
+

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Insight Text harness</title>
+<!-- Local test harness: loads the built bundle from ../.tmp/drop (run `npm run package` first) with a mocked Power BI host. -->
+<link rel="stylesheet" href="../.tmp/drop/visual.css">
+<style>
+  body { margin: 0; padding: 24px; background: #0B1220; font: 13px "Segoe UI", sans-serif; color: #CBD5E1; }
+  .panel { position: relative; height: 52px; margin-bottom: 16px; border-radius: 14px; border: 1px solid rgba(34, 211, 238, .35);
+           background: linear-gradient(90deg, rgba(34, 211, 238, .2), rgba(34, 211, 238, .04) 55%, rgba(34, 211, 238, .02)), #111A2E; }
+  .panel.narrow { width: 520px; height: 64px; }
+  .host { position: absolute; inset: 3px 8px; }
+  button { font: inherit; padding: 6px 12px; margin-bottom: 16px; border: 1px solid #1E2A44; background: #111A2E; color: #E2E8F0; border-radius: 6px; cursor: pointer; }
+  #log { font: 12px Consolas, monospace; color: #64748B; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<button id="swap">Switch year (2026 / 2025)</button>
+<div class="panel"><div class="host" id="h1"></div></div>
+<div class="panel narrow"><div class="host" id="h2"></div></div>
+<div id="log"></div>
+<script>window.powerbi = { visuals: { plugins: {} } };</script>
+<script src="../.tmp/drop/visual.js"></script>
+<script>
+const log = m => { document.getElementById("log").textContent += m + "\n"; };
+window.addEventListener("error", e => log("ERROR: " + e.message));
+const stories = {
+  2026: "Revenue reached [*$39.5M], [+up 12.1%] on last year. Net income of [*$5.8M] [+beat budget by $269K]. Supplier on-time delivery at [-71.5%] is the main operational risk.",
+  2025: "Revenue reached [*$44.8M], [+up 34.6%] on last year. Net income of [*$6.6M] [-missed budget by $631K]. Supplier on-time delivery at [-72.4%] is the main operational risk."
+};
+const host = () => ({
+  eventService: { renderingStarted() {}, renderingFinished() {}, renderingFailed(o, e) { log("renderingFailed: " + e); } },
+  createSelectionManager: () => ({ showContextMenu() {} })
+});
+const plugin = window.powerbi.visuals.plugins.insightText9B2CAF377804430CB0623EF097A0FD30;
+log("plugin loaded: " + !!plugin);
+const els = [document.getElementById("h1"), document.getElementById("h2")];
+const vs = els.map(el => plugin.create({ element: el, host: host() }));
+const objects = { text: { fontSize: 11, accentColor: { solid: { color: "#22D3EE" } } }, chip: { color: { solid: { color: "#22D3EE" } } } };
+let year = 2026;
+function update() {
+  vs.forEach((v, i) => v.update({ type: 2, viewport: { width: els[i].clientWidth, height: els[i].clientHeight },
+    dataViews: [{ metadata: { columns: [], objects }, single: { value: stories[year] } }] }));
+}
+update();
+document.getElementById("swap").onclick = () => { year = year === 2026 ? 2025 : 2026; update(); };
+</script>
+</body>
+</html>

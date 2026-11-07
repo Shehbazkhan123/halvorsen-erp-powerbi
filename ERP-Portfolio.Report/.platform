@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "ERP-Portfolio"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "185a3b8e-6d4a-4b15-a433-8baaa8bf6f2f"
+  }
+}

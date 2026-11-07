@@ -1,0 +1,101 @@
+/// Employees (150) with department, hire/termination dates and salary. EmployeeKey 1-20 are sales reps (referenced by Sales). No date relationship: HR measures read hire/termination dates directly.
+table Employee
+	lineageTag: a2725b49-6340-4495-a7e2-bda1f86e4ff4
+
+	column EmployeeKey
+		dataType: int64
+		isHidden
+		isKey
+		lineageTag: f8deadbd-a803-4772-9087-0df0d4685742
+		summarizeBy: none
+		sourceColumn: EmployeeKey
+
+	column 'Employee ID'
+		dataType: string
+		lineageTag: edd44699-59a2-4227-adf3-399021613e37
+		summarizeBy: none
+		sourceColumn: Employee ID
+
+	column 'Employee Name'
+		dataType: string
+		lineageTag: c7d6fa33-f9f8-4ac0-b102-f4a008513432
+		summarizeBy: none
+		sourceColumn: Employee Name
+
+	column DepartmentKey
+		dataType: int64
+		isHidden
+		lineageTag: c8c14d53-196f-4336-a5a6-583a2bc6a7f6
+		summarizeBy: none
+		sourceColumn: DepartmentKey
+
+	column 'Job Title'
+		dataType: string
+		lineageTag: df8a5bb9-572f-4706-a937-48f59d7425e9
+		summarizeBy: none
+		sourceColumn: Job Title
+
+	column 'Hire Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: c6ce0c4c-143b-41ef-8d31-64215d094937
+		summarizeBy: none
+		sourceColumn: Hire Date
+
+	column 'Termination Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 5a2655c3-8a75-46d5-a19f-278ccd4e52e0
+		summarizeBy: none
+		sourceColumn: Termination Date
+
+	column 'Employment Status'
+		dataType: string
+		lineageTag: 00e28257-8153-4f5c-8550-f0962219bed6
+		summarizeBy: none
+		sourceColumn: Employment Status
+
+	column 'Annual Salary'
+		dataType: decimal
+		formatString: \$#,0
+		lineageTag: 49e4c790-f3ec-46e7-abae-4486cac5b4d7
+		summarizeBy: none
+		sourceColumn: Annual Salary
+
+	partition Employee = m
+		mode: import
+		source =
+				let
+				    N = 150,
+				    AsOf = #date(2026, 10, 31),
+				    FirstNames = {"Aisha", "Ben", "Carlos", "Diana", "Ethan", "Fatima", "George", "Hana", "Ivan", "Julia", "Kenji", "Leila", "Marcus", "Nina", "Omar", "Priya", "Quinn", "Rosa", "Sam", "Tara"},
+				    LastNames = {"Ahmed", "Brown", "Chen", "Diaz", "Evans", "Fischer", "Garcia", "Hughes", "Iqbal", "Jones", "Khan", "Lopez", "Miller", "Novak", "Okafor", "Patel", "Rossi", "Singh", "Taylor", "Wong"},
+				    DeptNames = {"Sales", "Operations", "Finance", "Human Resources", "IT", "Procurement"},
+				    Levels = {"Associate", "Specialist", "Senior Specialist", "Manager"},
+				    Pick = (lst as list, r as number) => lst{Number.RoundDown(r * List.Count(lst))},
+				    Rows = List.Transform({1..N}, (k) =>
+				        let
+				            isRep = k <= 20,
+				            dept = if isRep then 1 else 1 + Number.Mod(k, 6),
+				            hire = Date.AddDays(#date(2018, 1, 1), Number.RoundDown(fnRand(k, 91) * (if isRep then 2100 else 3200))),
+				            leaves = (not isRep) and fnRand(k, 92) < 0.3,
+				            term = Date.AddDays(hire, 120 + Number.RoundDown(fnRand(k, 93) * 1400)),
+				            termDate = if leaves and term <= AsOf then term else null,
+				            level = Pick(Levels, fnRand(k, 94)),
+				            mult = if level = "Manager" then 1.6 else if level = "Senior Specialist" then 1.3 else 1
+				        in [
+				            EmployeeKey = k,
+				            #"Employee ID" = "E" & Text.PadStart(Text.From(k), 4, "0"),
+				            #"Employee Name" = Pick(FirstNames, fnRand(k, 95)) & " " & Pick(LastNames, fnRand(k, 96)),
+				            DepartmentKey = dept,
+				            #"Job Title" = if isRep then "Sales Representative" else DeptNames{dept - 1} & " " & level,
+				            #"Hire Date" = hire,
+				            #"Termination Date" = termDate,
+				            #"Employment Status" = if termDate = null then "Active" else "Terminated",
+				            #"Annual Salary" = Number.Round((45000 + fnRand(k, 97) * 30000) * mult, 0)
+				        ]),
+				    Source = Table.FromRecords(Rows),
+				    Typed = Table.TransformColumnTypes(Source, {{"EmployeeKey", Int64.Type}, {"Employee ID", type text}, {"Employee Name", type text}, {"DepartmentKey", Int64.Type}, {"Job Title", type text}, {"Hire Date", type date}, {"Termination Date", type date}, {"Employment Status", type text}, {"Annual Salary", Currency.Type}})
+				in
+				    Typed
+

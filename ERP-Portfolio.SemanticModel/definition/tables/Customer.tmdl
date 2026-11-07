@@ -1,0 +1,83 @@
+/// Customers (500) with segment, region and credit limit.
+table Customer
+	lineageTag: 546be4a2-3489-4baa-b815-08c47aa1d3c1
+
+	column CustomerKey
+		dataType: int64
+		isHidden
+		isKey
+		lineageTag: d94b5498-0473-42f3-aad1-241608fc10dd
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+	column 'Customer Code'
+		dataType: string
+		lineageTag: 2094b2db-3c22-49ea-9248-41402c28ecee
+		summarizeBy: none
+		sourceColumn: Customer Code
+
+	column 'Customer Name'
+		dataType: string
+		lineageTag: aafde843-f920-440b-987c-7b7324ee3bbd
+		summarizeBy: none
+		sourceColumn: Customer Name
+
+	column Segment
+		dataType: string
+		lineageTag: 5066aa40-9290-45b2-b7de-d8c67b9c3404
+		summarizeBy: none
+		sourceColumn: Segment
+
+	column Region
+		dataType: string
+		lineageTag: 45398488-fdd5-4011-91f8-aad96d3c2e08
+		summarizeBy: none
+		sourceColumn: Region
+
+	column Country
+		dataType: string
+		lineageTag: f304aed8-14a2-4319-8868-de8a671e5586
+		dataCategory: Country
+		summarizeBy: none
+		sourceColumn: Country
+
+	column 'Credit Limit'
+		dataType: decimal
+		formatString: \$#,0
+		lineageTag: fb7504ef-69aa-49c5-8da5-395bd91dfcde
+		summarizeBy: none
+		sourceColumn: Credit Limit
+
+	column 'Customer Since'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: cb732883-b9a2-4d91-8db4-1a1f503f63d4
+		summarizeBy: none
+		sourceColumn: Customer Since
+
+	partition Customer = m
+		mode: import
+		source =
+				let
+				    N = 500,
+				    Prefixes = {"Apex", "Blue Ridge", "Summit", "Nova", "Pioneer", "Vertex", "Harbor", "Crestline", "Atlas", "Zenith", "Silverline", "Primeway"},
+				    Suffixes = {"Traders", "Industries", "Retail", "Supply Co", "Group", "Holdings", "Partners", "Mart", "Logistics", "Solutions"},
+				    Segments = {"Retail", "Wholesale", "Online", "Enterprise", "Government"},
+				    Regions = {"North", "South", "East", "West", "Central"},
+				    Countries = {"United States", "Canada", "United Kingdom", "Germany", "India", "Australia"},
+				    Pick = (lst as list, r as number) => lst{Number.RoundDown(r * List.Count(lst))},
+				    Rows = List.Transform({1..N}, (k) => [
+				        CustomerKey = k,
+				        #"Customer Code" = "C" & Text.PadStart(Text.From(k), 5, "0"),
+				        #"Customer Name" = Pick(Prefixes, fnRand(k, 1)) & " " & Pick(Suffixes, fnRand(k, 2)) & " " & Text.From(k),
+				        Segment = Pick(Segments, fnRand(k, 3)),
+				        Region = Pick(Regions, fnRand(k, 4)),
+				        Country = Pick(Countries, fnRand(k, 5)),
+				        #"Credit Limit" = 5000 + Number.RoundDown(fnRand(k, 6) * 20) * 2500,
+				        #"Customer Since" = Date.AddDays(#date(2018, 1, 1), Number.RoundDown(fnRand(k, 7) * 1825))
+				    ]),
+				    Source = Table.FromRecords(Rows),
+				    Typed = Table.TransformColumnTypes(Source, {{"CustomerKey", Int64.Type}, {"Customer Code", type text}, {"Customer Name", type text}, {"Segment", type text}, {"Region", type text}, {"Country", type text}, {"Credit Limit", Currency.Type}, {"Customer Since", type date}})
+				in
+				    Typed
+

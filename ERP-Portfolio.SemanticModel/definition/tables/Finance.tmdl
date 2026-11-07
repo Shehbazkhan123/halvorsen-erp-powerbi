@@ -1,0 +1,77 @@
+/// General ledger monthly actuals and budget by account and department (Jan 2024 - Oct 2026). Amounts are stored as positive values; Account[Sign] converts them for Net Income.
+table Finance
+	lineageTag: a3bf24c2-997c-4795-973d-d70efc683f13
+
+	column 'Period Date'
+		dataType: dateTime
+		isHidden
+		formatString: yyyy-mm-dd
+		lineageTag: 96b6f5be-06ce-40f6-9ac6-162acbb21ada
+		summarizeBy: none
+		sourceColumn: Period Date
+
+	column AccountKey
+		dataType: int64
+		isHidden
+		lineageTag: f2f109da-31e4-4a77-94c3-939a959c35fb
+		summarizeBy: none
+		sourceColumn: AccountKey
+
+	column DepartmentKey
+		dataType: int64
+		isHidden
+		lineageTag: 2ef63e2e-82ea-49c5-a399-efc5dfbf39c6
+		summarizeBy: none
+		sourceColumn: DepartmentKey
+
+	column 'Actual Amount'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.00
+		lineageTag: f4731f61-a4c1-4c83-821e-0151bee6bd07
+		summarizeBy: sum
+		sourceColumn: Actual Amount
+
+	column 'Budget Amount'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.00
+		lineageTag: b55cbca4-f397-4b7c-9ca3-5e13d729a199
+		summarizeBy: sum
+		sourceColumn: Budget Amount
+
+	partition Finance = m
+		mode: import
+		source =
+				let
+				    Accounts = {
+				        {1, 3400, {1}}, {2, 300, {1}}, {3, 2000, {2}}, {4, 150, {2}},
+				        {5, 110, {1..6}}, {6, 25, {1..6}}, {7, 18, {1..6}}, {8, 20, {1..6}},
+				        {9, 8, {1..6}}, {10, 10, {1..6}}, {11, 12, {1..6}}, {12, 30, {3}}
+				    },
+				    DeptWeight = {1.6, 1.4, 0.6, 0.4, 0.9, 0.5},
+				    Seasonality = {0.9, 0.85, 1.0, 1.0, 1.0, 1.05, 0.95, 0.95, 1.05, 1.1, 1.25, 1.3},
+				    Rows = List.Combine(List.Transform({0..33}, (m) =>
+				        List.Combine(List.Transform(Accounts, (a) =>
+				            List.Transform(a{2}, (d) =>
+				                let
+				                    acct = a{0},
+				                    weight = if List.Count(a{2}) > 1 then DeptWeight{d - 1} else 1,
+				                    period = Date.AddMonths(#date(2024, 1, 1), m),
+				                    seasonal = if acct <= 4 then Seasonality{Date.Month(period) - 1} else 1,
+				                    base = a{1} * 1000 * weight * seasonal,
+				                    i = m * 1000 + acct * 10 + d,
+				                    actual = Number.Round(base * (1 + 0.012 * m) * (0.94 + fnRand(i, 81) * 0.12), 2),
+				                    budget = Number.Round(base * (1 + 0.013 * m) * (0.98 + fnRand(i, 82) * 0.04), 2)
+				                in [
+				                    #"Period Date" = period,
+				                    AccountKey = acct,
+				                    DepartmentKey = d,
+				                    #"Actual Amount" = actual,
+				                    #"Budget Amount" = budget
+				                ]))))),
+				    Source = Table.FromRecords(Rows),
+				    Typed = Table.TransformColumnTypes(Source, {{"Period Date", type date}, {"AccountKey", Int64.Type}, {"DepartmentKey", Int64.Type}, {"Actual Amount", Currency.Type}, {"Budget Amount", Currency.Type}})
+				in
+				    Typed
+

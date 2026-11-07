@@ -1,0 +1,189 @@
+/// Sales order lines (~60k, Jan 2024 - Oct 2026). Grain: one row per order line. Ship Date is blank and Order Status = Open for orders not yet shipped as of 2026-10-31. Promise is shipping within 5 days.
+table Sales
+	lineageTag: e3fa135a-b46d-481c-89c3-b73766511f74
+
+	column 'Sales Line Key'
+		dataType: int64
+		isHidden
+		lineageTag: 827a72ef-9d76-43c8-9696-ece37122a4fc
+		summarizeBy: none
+		sourceColumn: Sales Line Key
+
+	column 'Order Number'
+		dataType: string
+		lineageTag: 1e0cf947-730c-4235-a83f-5a6b9135ad46
+		summarizeBy: none
+		sourceColumn: Order Number
+
+	column 'Line Number'
+		dataType: int64
+		isHidden
+		lineageTag: 83cb87bd-fc2a-46f3-9023-57caa9d230ec
+		summarizeBy: none
+		sourceColumn: Line Number
+
+	column 'Order Date'
+		dataType: dateTime
+		isHidden
+		formatString: yyyy-mm-dd
+		lineageTag: 76c784e6-9aa5-4741-a512-a8092037f9b1
+		summarizeBy: none
+		sourceColumn: Order Date
+
+	column 'Ship Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 451f2a5f-37b7-4453-9f43-a1a39d2d5077
+		summarizeBy: none
+		sourceColumn: Ship Date
+
+	column CustomerKey
+		dataType: int64
+		isHidden
+		lineageTag: da95032a-fe0d-4122-bc2e-c36887d8c13c
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		lineageTag: 971561fd-1073-4aac-b1a7-69ac10e9331a
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+	column EmployeeKey
+		dataType: int64
+		isHidden
+		lineageTag: 95d21aa4-b8a3-4db8-962b-fd3484c5b48f
+		summarizeBy: none
+		sourceColumn: EmployeeKey
+
+	column WarehouseKey
+		dataType: int64
+		isHidden
+		lineageTag: f2299255-f1b8-41ff-bbb0-cbd57339f1f2
+		summarizeBy: none
+		sourceColumn: WarehouseKey
+
+	column Quantity
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: 4433a3a2-86f9-43cb-879c-59df78e32c67
+		summarizeBy: sum
+		sourceColumn: Quantity
+
+	column 'Unit Price'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.00
+		lineageTag: e898982c-4d27-4bf5-bca4-c7da761b44bb
+		summarizeBy: none
+		sourceColumn: Unit Price
+
+	column 'Discount %'
+		dataType: double
+		isHidden
+		formatString: 0%
+		lineageTag: 728f84ed-a85c-4377-a4a6-e143a9cc923f
+		summarizeBy: none
+		sourceColumn: Discount %
+
+	column 'Gross Amount'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.00
+		lineageTag: eeb6dfe8-3622-4782-b8a1-261b54b0799f
+		summarizeBy: sum
+		sourceColumn: Gross Amount
+
+	column 'Net Amount'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.00
+		lineageTag: 0ded09b0-a61d-4892-b167-2170b5be2e74
+		summarizeBy: sum
+		sourceColumn: Net Amount
+
+	column 'Cost Amount'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.00
+		lineageTag: b0264069-9163-4ea9-9071-701d062ad3ea
+		summarizeBy: sum
+		sourceColumn: Cost Amount
+
+	column 'Order Status'
+		dataType: string
+		lineageTag: 3c52fd2d-1662-4ddc-9fb5-37a47f80b75c
+		summarizeBy: none
+		sourceColumn: Order Status
+
+	column 'Ship Days'
+		dataType: int64
+		isHidden
+		lineageTag: f0878b19-bd42-46a1-9b31-df32eabbd62d
+		summarizeBy: none
+		sourceColumn: Ship Days
+
+	column 'Is On Time'
+		dataType: boolean
+		lineageTag: 0f2f644a-568d-4d7b-94a4-e417ca064ba9
+		summarizeBy: none
+		sourceColumn: Is On Time
+
+	partition Sales = m
+		mode: import
+		source =
+				let
+				    NOrders = 20000,
+				    StartDate = #date(2024, 1, 1),
+				    Span = 1035,
+				    AsOf = #date(2026, 10, 31),
+				    Seasonality = {0.9, 0.85, 1.0, 1.0, 1.0, 1.05, 0.95, 0.95, 1.05, 1.1, 1.25, 1.3},
+				    Lines = List.Combine(List.Transform({1..NOrders}, (o) =>
+				        let
+				            orderDate = Date.AddDays(StartDate, Number.RoundDown(Number.Power(fnRand(o, 61), 0.8) * Span)),
+				            customer = 1 + Number.RoundDown(Number.Power(fnRand(o, 62), 1.6) * 500),
+				            rep = 1 + Number.RoundDown(fnRand(o, 63) * 20),
+				            wh = 1 + Number.RoundDown(fnRand(o, 64) * 5),
+				            nLines = 1 + Number.RoundDown(fnRand(o, 65) * 5),
+				            shipDays = 1 + Number.RoundDown(Number.Power(fnRand(o, 66), 4) * 10),
+				            shipDate = Date.AddDays(orderDate, shipDays),
+				            isShipped = shipDate <= AsOf,
+				            season = Seasonality{Date.Month(orderDate) - 1}
+				        in
+				            List.Transform({1..nLines}, (l) =>
+				                let
+				                    i = o * 10 + l,
+				                    p = 1 + Number.RoundDown(Number.Power(fnRand(i, 67), 1.3) * 120),
+				                    qty = List.Max({1, Number.Round((1 + Number.RoundDown(fnRand(i, 68) * 20)) * season)}),
+				                    r = fnRand(i, 69),
+				                    disc = if r < 0.6 then 0 else if r < 0.85 then 0.05 else if r < 0.95 then 0.1 else 0.15,
+				                    price = fnProductPrice(p),
+				                    gross = Number.Round(qty * price, 2)
+				                in [
+				                    #"Sales Line Key" = i,
+				                    #"Order Number" = "SO-" & Text.PadStart(Text.From(o), 6, "0"),
+				                    #"Line Number" = l,
+				                    #"Order Date" = orderDate,
+				                    #"Ship Date" = if isShipped then shipDate else null,
+				                    CustomerKey = customer,
+				                    ProductKey = p,
+				                    EmployeeKey = rep,
+				                    WarehouseKey = wh,
+				                    Quantity = qty,
+				                    #"Unit Price" = price,
+				                    #"Discount %" = disc,
+				                    #"Gross Amount" = gross,
+				                    #"Net Amount" = Number.Round(gross * (1 - disc), 2),
+				                    #"Cost Amount" = Number.Round(qty * fnProductCost(p), 2),
+				                    #"Order Status" = if isShipped then "Shipped" else "Open",
+				                    #"Ship Days" = if isShipped then shipDays else null,
+				                    #"Is On Time" = if isShipped then shipDays <= 5 else null
+				                ]))),
+				    Source = Table.FromRecords(Lines),
+				    Typed = Table.TransformColumnTypes(Source, {{"Sales Line Key", Int64.Type}, {"Order Number", type text}, {"Line Number", Int64.Type}, {"Order Date", type date}, {"Ship Date", type date}, {"CustomerKey", Int64.Type}, {"ProductKey", Int64.Type}, {"EmployeeKey", Int64.Type}, {"WarehouseKey", Int64.Type}, {"Quantity", Int64.Type}, {"Unit Price", Currency.Type}, {"Discount %", type number}, {"Gross Amount", Currency.Type}, {"Net Amount", Currency.Type}, {"Cost Amount", Currency.Type}, {"Order Status", type text}, {"Ship Days", Int64.Type}, {"Is On Time", type logical}})
+				in
+				    Typed
+

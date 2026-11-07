@@ -1,0 +1,48 @@
+table 'Time View'
+	lineageTag: 4960cb7b-bcb9-42e7-bafa-5e4686ffeb34
+
+	/// Time-intelligence switcher applied to any measure: Current, Prior Year, YoY, YoY %, YTD. Prior-year logic only shifts dates up to the data as-of date (Date[Is Past]).
+	calculationGroup
+		precedence: 10
+
+		/// The measure as-is.
+		calculationItem Current = SELECTEDMEASURE ()
+
+		/// Same period last year (like-for-like up to the as-of date).
+		calculationItem 'Prior Year' =
+				CALCULATE (
+				    SELECTEDMEASURE (),
+				    CALCULATETABLE ( DATEADD ( 'Date'[Date], -1, YEAR ), 'Date'[Is Past] = TRUE () )
+				)
+
+		/// Change versus the same period last year.
+		calculationItem YoY =
+				VAR _Cur = SELECTEDMEASURE ()
+				VAR _PY = CALCULATE (
+				    SELECTEDMEASURE (),
+				    CALCULATETABLE ( DATEADD ( 'Date'[Date], -1, YEAR ), 'Date'[Is Past] = TRUE () )
+				)
+				RETURN
+				    IF ( NOT ISBLANK ( _Cur ) && NOT ISBLANK ( _PY ), _Cur - _PY )
+
+		/// Growth versus the same period last year.
+		calculationItem 'YoY %' =
+				VAR _Cur = SELECTEDMEASURE ()
+				VAR _PY = CALCULATE (
+				    SELECTEDMEASURE (),
+				    CALCULATETABLE ( DATEADD ( 'Date'[Date], -1, YEAR ), 'Date'[Is Past] = TRUE () )
+				)
+				RETURN
+				    IF ( NOT ISBLANK ( _Cur ) && NOT ISBLANK ( _PY ), DIVIDE ( _Cur - _PY, ABS ( _PY ) ) )
+
+			formatStringDefinition = "+0.0%;-0.0%;0.0%"
+
+		/// Calendar year-to-date.
+		calculationItem YTD = CALCULATE ( SELECTEDMEASURE (), DATESYTD ( 'Date'[Date] ) )
+
+	column 'Time View'
+		dataType: string
+		lineageTag: f9adb88d-24a1-45f1-a57b-3c0510ae6622
+
+	partition 'Partition_Time View' = calculationGroup
+

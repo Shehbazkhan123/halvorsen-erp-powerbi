@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "ERP-Portfolio"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "be4c64c7-2d43-489c-8093-3cc58bc5758e"
+  }
+}

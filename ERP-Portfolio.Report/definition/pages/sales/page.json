@@ -1,0 +1,94 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "sales",
+  "displayName": "Sales",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "objects": {
+    "background": [
+      {
+        "properties": {
+          "image": {
+            "image": {
+              "name": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'bg-sales.png'"
+                  }
+                }
+              },
+              "url": {
+                "expr": {
+                  "ResourcePackageItem": {
+                    "PackageName": "RegisteredResources",
+                    "PackageType": 1,
+                    "ItemName": "bg-sales.png"
+                  }
+                }
+              },
+              "scaling": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'Fit'"
+                  }
+                }
+              }
+            }
+          },
+          "transparency": {
+            "expr": {
+              "Literal": {
+                "Value": "0D"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "outspace": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'#0B1220'"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "visualInteractions": [
+    {
+      "source": "sales_timeview",
+      "target": "sales_kpi_revenue",
+      "type": "NoFilter"
+    },
+    {
+      "source": "sales_timeview",
+      "target": "sales_kpi_grossprofit",
+      "type": "NoFilter"
+    },
+    {
+      "source": "sales_timeview",
+      "target": "sales_kpi_orders",
+      "type": "NoFilter"
+    },
+    {
+      "source": "sales_timeview",
+      "target": "sales_kpi_aov",
+      "type": "NoFilter"
+    },
+    {
+      "source": "sales_timeview",
+      "target": "sales_insight",
+      "type": "NoFilter"
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+/// Products (120) across 6 categories with standard cost, list price and reorder point.
+table Product
+	lineageTag: 7f1f33e3-7e8c-43b2-b10d-929b57a9047f
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		isKey
+		lineageTag: 78f25488-0495-4450-9d6d-0d8bb90871b1
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+	column SKU
+		dataType: string
+		lineageTag: 388e743d-e28e-4d0f-8e4a-d11c8c442f2b
+		summarizeBy: none
+		sourceColumn: SKU
+
+	column 'Product Name'
+		dataType: string
+		lineageTag: 15303e73-3057-47e8-b8a9-86cbaf2ae71e
+		summarizeBy: none
+		sourceColumn: Product Name
+
+	column Category
+		dataType: string
+		lineageTag: 0157c6eb-7538-4796-bb07-3460a87973d0
+		summarizeBy: none
+		sourceColumn: Category
+
+	column 'Unit Cost'
+		dataType: decimal
+		formatString: \$#,0.00
+		lineageTag: b134c7ac-460c-4f8c-acce-d63b1aac04b9
+		summarizeBy: none
+		sourceColumn: Unit Cost
+
+	column 'List Price'
+		dataType: decimal
+		formatString: \$#,0.00
+		lineageTag: 5c2a962f-0f15-4b87-b82f-a4796e82e0cc
+		summarizeBy: none
+		sourceColumn: List Price
+
+	column 'Reorder Point'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 585d8377-3375-4fa8-9030-d1802c30c882
+		summarizeBy: none
+		sourceColumn: Reorder Point
+
+	partition Product = m
+		mode: import
+		source =
+				let
+				    N = 120,
+				    Categories = {"Electronics", "Office Supplies", "Furniture", "Industrial Parts", "Packaging", "Safety Equipment"},
+				    Nouns = {
+				        {"Monitor", "Router", "Headset", "Keyboard", "Tablet"},
+				        {"Paper Ream", "Stapler", "Binder", "Pen Set", "Notebook"},
+				        {"Desk", "Chair", "Cabinet", "Shelf", "Table"},
+				        {"Bearing", "Valve", "Gear", "Pump", "Motor"},
+				        {"Carton", "Pallet Wrap", "Tape Roll", "Crate", "Mailer"},
+				        {"Helmet", "Gloves", "Goggles", "Vest", "Boots"}
+				    },
+				    Tiers = {"Pro", "Lite", "Max", "Eco", "Ultra", "Core"},
+				    Pick = (lst as list, r as number) => lst{Number.RoundDown(r * List.Count(lst))},
+				    Rows = List.Transform({1..N}, (k) =>
+				        let c = Number.Mod(k - 1, 6) in [
+				            ProductKey = k,
+				            SKU = "SKU-" & Text.PadStart(Text.From(k), 4, "0"),
+				            #"Product Name" = Pick(Tiers, fnRand(k, 11)) & " " & Pick(Nouns{c}, fnRand(k, 12)) & " " & Text.From(100 + k),
+				            Category = Categories{c},
+				            #"Unit Cost" = fnProductCost(k),
+				            #"List Price" = fnProductPrice(k),
+				            #"Reorder Point" = fnProductReorderPoint(k)
+				        ]),
+				    Source = Table.FromRecords(Rows),
+				    Typed = Table.TransformColumnTypes(Source, {{"ProductKey", Int64.Type}, {"SKU", type text}, {"Product Name", type text}, {"Category", type text}, {"Unit Cost", Currency.Type}, {"List Price", Currency.Type}, {"Reorder Point", Int64.Type}})
+				in
+				    Typed
+

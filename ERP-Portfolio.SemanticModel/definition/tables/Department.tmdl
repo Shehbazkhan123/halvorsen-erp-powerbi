@@ -1,0 +1,41 @@
+/// Departments / cost centers. Shared by Employee (HR) and Finance (GL).
+table Department
+	lineageTag: 0e5c8f80-249b-4351-9a79-f53a507cf7d5
+
+	column DepartmentKey
+		dataType: int64
+		isHidden
+		isKey
+		lineageTag: 4f0c7d44-c512-4810-83fa-1b393b3569b8
+		summarizeBy: none
+		sourceColumn: DepartmentKey
+
+	column Department
+		dataType: string
+		lineageTag: f938a2d8-ae16-4e6e-a386-97d958af7b23
+		summarizeBy: none
+		sourceColumn: Department
+
+	column 'Cost Center'
+		dataType: string
+		lineageTag: cab1e6cc-4245-4a90-ba8c-3b2e90b0c650
+		summarizeBy: none
+		sourceColumn: Cost Center
+
+	partition Department = m
+		mode: import
+		source =
+				let
+				    Source = #table(
+				        type table [DepartmentKey = Int64.Type, Department = text, #"Cost Center" = text],
+				        {
+				            {1, "Sales", "CC-100"},
+				            {2, "Operations", "CC-200"},
+				            {3, "Finance", "CC-300"},
+				            {4, "Human Resources", "CC-400"},
+				            {5, "IT", "CC-500"},
+				            {6, "Procurement", "CC-600"}
+				        })
+				in
+				    Source
+

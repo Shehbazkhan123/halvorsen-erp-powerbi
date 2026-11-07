@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ERP KPI Card harness</title>
+<!-- Local test harness: loads the built bundle from ../.tmp/drop (run `npm run package` first) with a mocked Power BI host. -->
+<link rel="stylesheet" href="../.tmp/drop/visual.css">
+<style>
+  body { margin: 0; padding: 16px; background: #F3F2F1; font: 13px "Segoe UI", sans-serif; color: #252423; }
+  .grid { display: flex; flex-wrap: wrap; gap: 16px; }
+  .tile { position: relative; width: 300px; height: 190px; background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.12); overflow: hidden; }
+  .controls { margin: 0 0 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+  button { font: inherit; padding: 6px 12px; border: 1px solid #C8C6C4; background: #fff; border-radius: 4px; cursor: pointer; }
+  #log { margin-top: 16px; font: 12px Consolas, monospace; white-space: pre-wrap; color: #605E5C; }
+</style>
+</head>
+<body>
+<div class="controls">
+  <button id="filter">Simulate filter change</button>
+  <button id="reset">Reset data</button>
+  <button id="resize">Toggle tile size</button>
+  <button id="nocat">Remove trend axis (card 1)</button>
+</div>
+<div class="grid">
+  <div class="tile" id="t1"></div>
+  <div class="tile" id="t2"></div>
+  <div class="tile" id="t3"></div>
+  <div class="tile" id="t4"></div>
+  <div class="tile" id="t5"></div>
+</div>
+<div id="log"></div>
+
+<script>window.powerbi = { visuals: { plugins: {} } };</script>
+<script src="../.tmp/drop/visual.js"></script>
+<script>
+const log = (m) => { document.getElementById("log").textContent += m + "\n"; };
+window.addEventListener("error", e => log("ERROR: " + e.message));
+
+const months = ["Jan 2025","Feb 2025","Mar 2025","Apr 2025","May 2025","Jun 2025","Jul 2025","Aug 2025","Sep 2025","Oct 2025","Nov 2025","Dec 2025",
+  "Jan 2026","Feb 2026","Mar 2026","Apr 2026","May 2026","Jun 2026","Jul 2026","Aug 2026","Sep 2026","Oct 2026","Nov 2026","Dec 2026"];
+const revenue = [2817213.21,2925522.53,3580122.34,3222282.08,3435113.28,3711561.52,3587474.91,3755122.98,3895453.99,4345700.97,4718158.68,4854710.13,
+  3338932.11,3207675.4,4110392.07,3839912.89,3939868.19,4020696.67,4100937.71,4026583.84,4242898.56,4717627.16,null,null];
+const revenuePY = [1274819.92,1562266.79,2535745.93,2681884.51,2652801.75,2678860.6,2496721.41,3071142.9,2713036.23,3449849.56,4051697.5,4142415.12,
+  2817213.21,2925522.53,3580122.34,3222282.08,3435113.28,3711561.52,3587474.91,3755122.98,3895453.99,4345700.97,null,null];
+const gm = [0.3373,0.3349,0.3393,0.3358,0.3367,0.3384,0.3363,0.3369,0.3407,0.3336,0.3361,0.3352,0.3384,0.3365,0.3373,0.3365,0.3390,0.3380,0.3355,0.3391,0.3405,0.3348,null,null];
+
+const col = (name, role, format, values) => ({ source: { displayName: name, queryName: name, roles: { [role]: true }, format, isMeasure: true }, values });
+function categoricalView(catValues, measures, objects) {
+  return { metadata: { columns: [], objects: objects || {} }, categorical: {
+    categories: catValues ? [{ source: { displayName: "Year Month", roles: { category: true } }, values: catValues }] : undefined,
+    values: measures } };
+}
+
+function makeHost() {
+  return {
+    eventService: { renderingStarted() {}, renderingFinished() {}, renderingFailed(o, e) { log("renderingFailed: " + e); } },
+    createSelectionManager: () => ({ showContextMenu() { log("context menu"); } }),
+    colorPalette: { isHighContrast: false, foreground: { value: "#000" }, background: { value: "#fff" } }
+  };
+}
+
+const plugin = window.powerbi.visuals.plugins.erpKpiCardDB2F16D1C4D7440ABE6A7786CEC020DC;
+log("plugin loaded: " + !!plugin + " (" + (plugin && plugin.displayName) + ")");
+
+const tiles = ["t1","t2","t3","t4","t5"].map(id => document.getElementById(id));
+const visuals = tiles.map(el => plugin.create({ element: el, host: makeHost() }));
+let factor = 1, noCat = false, big = false;
+
+function views() {
+  const f = v => v === null ? null : v * factor;
+  return [
+    noCat
+      ? categoricalView(null, [col("Revenue YTD", "value", "\\$#,0;(\\$#,0);\\$#,0", [39545524.6 * factor]), col("Revenue PY YTD", "comparison", "\\$#,0", [35275567.81])])
+      : categoricalView(months, [col("Revenue", "value", "\\$#,0;(\\$#,0);\\$#,0", revenue.map(f)), col("Revenue PY", "comparison", "\\$#,0", revenuePY)]),
+    categoricalView(months, [col("Gross Margin %", "value", "0.0%", gm.map(v => v === null ? null : v * (factor === 1 ? 1 : 0.97))), col("Target GM %", "comparison", "0.0%", gm.map(v => v === null ? null : 0.335))]),
+    categoricalView(null, [col("Net Income", "value", "\\$#,0;(\\$#,0);\\$#,0", [5845635.55 * factor]), col("Net Income Budget", "comparison", "\\$#,0", [5577086.2])]),
+    categoricalView(months, [col("Purchase Spend", "value", "\\$#,0", revenue.map(v => v === null ? null : v * 0.97 * factor)), col("Budget", "comparison", "\\$#,0", revenue.map(v => v === null ? null : v * 0.95))],
+      { comparisonText: { higherIsBetter: false, label: "vs budget" }, sparkline: { color: { solid: { color: "#E66C37" } } } }),
+    // 2026 only, headline = sum of the months shown (should equal Revenue YTD $39.5M vs PY YTD $35.3M)
+    categoricalView(months.slice(12), [col("Revenue 2026", "value", "\\$#,0;(\\$#,0);\\$#,0", revenue.slice(12).map(f)), col("Revenue PY", "comparison", "\\$#,0", revenuePY.slice(12))],
+      { valueText: { headlineMode: "sum" }, comparisonText: { label: "vs PY" } })
+  ];
+}
+
+function updateAll(type) {
+  const vs = views();
+  visuals.forEach((v, i) => {
+    const el = tiles[i];
+    try {
+      v.update({ type, dataViews: [vs[i]], viewport: { width: el.clientWidth, height: el.clientHeight } });
+    } catch (e) { log("update threw: " + e); }
+  });
+}
+
+updateAll(2);
+document.getElementById("filter").onclick = () => { factor = factor === 1 ? 0.8 : factor * 1.15; updateAll(2); };
+document.getElementById("reset").onclick = () => { factor = 1; updateAll(2); };
+document.getElementById("nocat").onclick = () => { noCat = !noCat; updateAll(2); };
+document.getElementById("resize").onclick = () => {
+  big = !big;
+  tiles.forEach(t => { t.style.width = big ? "420px" : "300px"; t.style.height = big ? "240px" : "190px"; });
+  updateAll(4);
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+{
+    "name": "Halvorsen Supply Co. Dark",
+    "dataColors": ["#22D3EE", "#8B5CF6", "#F59E0B", "#10B981", "#F43F5E", "#3B82F6", "#EAB308", "#EC4899", "#14B8A6", "#A78BFA"],
+    "foreground": "#E2E8F0",
+    "foregroundNeutralSecondary": "#94A3B8",
+    "foregroundNeutralTertiary": "#64748B",
+    "background": "#0B1220",
+    "backgroundLight": "#16213A",
+    "backgroundNeutral": "#1E2A44",
+    "tableAccent": "#22D3EE",
+    "good": "#34D399",
+    "bad": "#FB7185",
+    "neutral": "#94A3B8",
+    "maximum": "#22D3EE",
+    "center": "#8B5CF6",
+    "minimum": "#1E2A44",
+    "textClasses": {
+        "title": { "fontFace": "Segoe UI Semibold", "fontSize": 11, "color": "#E2E8F0" },
+        "header": { "fontFace": "Segoe UI Semibold", "fontSize": 12, "color": "#E2E8F0" },
+        "label": { "fontFace": "Segoe UI", "fontSize": 9, "color": "#94A3B8" },
+        "callout": { "fontFace": "Segoe UI Semibold", "fontSize": 26, "color": "#F8FAFC" }
+    },
+    "visualStyles": {
+        "*": {
+            "*": {
+                "background": [{ "show": false }],
+                "border": [{ "show": false }],
+                "dropShadow": [{ "show": false }],
+                "padding": [{ "top": 12, "bottom": 10, "left": 14, "right": 14 }],
+                "title": [{ "show": true, "fontColor": { "solid": { "color": "#E2E8F0" } }, "fontSize": 11, "fontFamily": "Segoe UI Semibold" }],
+                "subTitle": [{ "fontColor": { "solid": { "color": "#94A3B8" } } }],
+                "categoryAxis": [{ "showAxisTitle": false, "gridlineShow": false, "labelColor": { "solid": { "color": "#94A3B8" } }, "fontSize": 9 }],
+                "valueAxis": [{ "showAxisTitle": false, "gridlineStyle": "dotted", "gridlineColor": { "solid": { "color": "#1E2A44" } }, "labelColor": { "solid": { "color": "#94A3B8" } }, "fontSize": 9 }],
+                "legend": [{ "position": "Top", "fontSize": 9, "labelColor": { "solid": { "color": "#94A3B8" } } }],
+                "labels": [{ "color": { "solid": { "color": "#E2E8F0" } }, "fontSize": 9 }],
+                "visualHeader": [{ "background": { "solid": { "color": "#111A2E" } }, "border": { "solid": { "color": "#1E2A44" } }, "foreground": { "solid": { "color": "#94A3B8" } } }],
+                "visualTooltip": [{ "background": { "solid": { "color": "#16213A" } }, "titleFontColor": { "solid": { "color": "#94A3B8" } }, "valueFontColor": { "solid": { "color": "#F1F5F9" } } }]
+            }
+        },
+        "page": {
+            "*": {
+                "background": [{ "color": { "solid": { "color": "#0B1220" } }, "transparency": 0 }],
+                "outspace": [{ "color": { "solid": { "color": "#0B1220" } }, "transparency": 0 }]
+            }
+        },
+        "textbox": {
+            "*": { "padding": [{ "top": 0, "bottom": 0, "left": 0, "right": 0 }] }
+        },
+        "actionButton": {
+            "*": { "padding": [{ "top": 0, "bottom": 0, "left": 0, "right": 0 }] }
+        },
+        "erpKpiCardDB2F16D1C4D7440ABE6A7786CEC020DC": {
+            "*": { "padding": [{ "top": 0, "bottom": 0, "left": 0, "right": 0 }] }
+        },
+        "insightText9B2CAF377804430CB0623EF097A0FD30": {
+            "*": { "padding": [{ "top": 0, "bottom": 0, "left": 0, "right": 0 }] }
+        },
+        "slicer": {
+            "*": {
+                "padding": [{ "top": 4, "bottom": 4, "left": 10, "right": 10 }],
+                "header": [{ "fontColor": { "solid": { "color": "#94A3B8" } }, "textSize": 9 }],
+                "items": [{ "fontColor": { "solid": { "color": "#F1F5F9" } }, "background": { "solid": { "color": "#111A2E" } }, "textSize": 10 }]
+            }
+        },
+        "tableEx": {
+            "*": {
+                "columnHeaders": [{ "fontColor": { "solid": { "color": "#94A3B8" } }, "backColor": { "solid": { "color": "#111A2E" } } }],
+                "values": [{ "fontColorPrimary": { "solid": { "color": "#E2E8F0" } }, "backColorPrimary": { "solid": { "color": "#111A2E" } }, "fontColorSecondary": { "solid": { "color": "#E2E8F0" } }, "backColorSecondary": { "solid": { "color": "#0F1729" } } }],
+                "total": [{ "fontColor": { "solid": { "color": "#F8FAFC" } }, "backColor": { "solid": { "color": "#16213A" } } }],
+                "grid": [{ "gridHorizontalColor": { "solid": { "color": "#1E2A44" } }, "outlineColor": { "solid": { "color": "#1E2A44" } } }]
+            }
+        },
+        "pivotTable": {
+            "*": {
+                "columnHeaders": [{ "fontColor": { "solid": { "color": "#94A3B8" } }, "backColor": { "solid": { "color": "#111A2E" } } }],
+                "rowHeaders": [{ "fontColor": { "solid": { "color": "#E2E8F0" } }, "backColor": { "solid": { "color": "#111A2E" } } }],
+                "values": [{ "fontColorPrimary": { "solid": { "color": "#E2E8F0" } }, "backColorPrimary": { "solid": { "color": "#111A2E" } }, "fontColorSecondary": { "solid": { "color": "#E2E8F0" } }, "backColorSecondary": { "solid": { "color": "#0F1729" } } }],
+                "subTotals": [{ "fontColor": { "solid": { "color": "#F8FAFC" } }, "backColor": { "solid": { "color": "#16213A" } } }],
+                "total": [{ "fontColor": { "solid": { "color": "#F8FAFC" } }, "backColor": { "solid": { "color": "#16213A" } } }],
+                "grid": [{ "gridHorizontalColor": { "solid": { "color": "#1E2A44" } }, "outlineColor": { "solid": { "color": "#1E2A44" } } }]
+            }
+        }
+    }
+}

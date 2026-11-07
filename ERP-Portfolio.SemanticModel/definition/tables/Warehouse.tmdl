@@ -1,0 +1,53 @@
+/// Distribution centers. Shared by Sales, Purchasing and Inventory.
+table Warehouse
+	lineageTag: 31d9e6b5-3c61-426e-88c7-270cf59445ba
+
+	column WarehouseKey
+		dataType: int64
+		isHidden
+		isKey
+		lineageTag: 75531958-d292-415d-add1-90aeb66ad122
+		summarizeBy: none
+		sourceColumn: WarehouseKey
+
+	column 'Warehouse Code'
+		dataType: string
+		lineageTag: bdeb8a31-ee5e-4861-a54a-a19ba712aa0a
+		summarizeBy: none
+		sourceColumn: Warehouse Code
+
+	column Warehouse
+		dataType: string
+		lineageTag: d5f3eefc-a7d8-43ab-99be-d68d91ee9b83
+		summarizeBy: none
+		sourceColumn: Warehouse
+
+	column City
+		dataType: string
+		lineageTag: 0a40bd6c-35fd-44fa-a527-20ccc13581fc
+		dataCategory: City
+		summarizeBy: none
+		sourceColumn: City
+
+	column Region
+		dataType: string
+		lineageTag: 5845cd9e-6e4c-4212-bd1f-524df0302ef8
+		summarizeBy: none
+		sourceColumn: Region
+
+	partition Warehouse = m
+		mode: import
+		source =
+				let
+				    Source = #table(
+				        type table [WarehouseKey = Int64.Type, #"Warehouse Code" = text, Warehouse = text, City = text, Region = text],
+				        {
+				            {1, "WH-01", "Chicago Central DC", "Chicago", "Central"},
+				            {2, "WH-02", "Atlanta South DC", "Atlanta", "South"},
+				            {3, "WH-03", "Newark East DC", "Newark", "East"},
+				            {4, "WH-04", "Reno West DC", "Reno", "West"},
+				            {5, "WH-05", "Minneapolis North DC", "Minneapolis", "North"}
+				        })
+				in
+				    Source
+

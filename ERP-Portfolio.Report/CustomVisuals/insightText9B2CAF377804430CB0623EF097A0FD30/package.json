@@ -1,0 +1,17 @@
+{
+		"version": "1.0.0.0",
+		"author": {"name":"Shehbaz Khan","email":"shehbazkhanofficial@gmail.com"},
+		"resources": [
+			{
+				"resourceId": "rId0",
+				"sourceType": 5,
+				"file": "resources/insightText9B2CAF377804430CB0623EF097A0FD30.pbiviz.json"
+			}
+		],
+		"visual": {"name":"insightText","displayName":"Insight Text (GSAP)","guid":"insightText9B2CAF377804430CB0623EF097A0FD30","visualClassName":"Visual","version":"1.0.0.0","description":"Animated data-driven narrative: renders a DAX text measure with [*accent], [+favorable] and [-unfavorable] highlights, revealed word by word with GSAP.","supportUrl":"mailto:shehbazkhanofficial@gmail.com","gitHubUrl":""},
+		"metadata": {
+			"pbivizjson": {
+				"resourceId": "rId0"
+			}
+		}
+	}

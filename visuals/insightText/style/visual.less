@@ -1,0 +1,44 @@
+@font: "Segoe UI", wf_segoe-ui_normal, helvetica, arial, sans-serif;
+
+.insight {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: @font;
+    overflow: hidden;
+    user-select: none;
+}
+
+.insight-chip {
+    flex: 0 0 auto;
+    padding: 3px 9px;
+    border: 1px solid;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+}
+
+.insight-text {
+    margin: 0;
+    line-height: 1.45;
+    font-weight: 400;
+}
+
+.w {
+    display: inline-block;
+}
+
+.hl {
+    font-weight: 600;
+    background-image: linear-gradient(var(--hl), var(--hl));
+    background-repeat: no-repeat;
+    background-position: 0 88%;
+    background-size: 100% 38%;
+    border-radius: 2px;
+    padding: 0 1px;
+}

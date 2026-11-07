@@ -1,0 +1,11 @@
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+
+# Custom visual build artifacts (dist/*.pbiviz is kept: it's the importable package)
+visuals/**/node_modules/
+visuals/**/.tmp/
+visuals/**/webpack.statistics.*.html
+
+# Report generator
+tools/node_modules/
+tools/out/

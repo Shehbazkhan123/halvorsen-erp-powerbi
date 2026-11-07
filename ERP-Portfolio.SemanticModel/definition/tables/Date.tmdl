@@ -1,0 +1,108 @@
+/// Marked date table, 2024-01-01 to 2026-12-31. 'Is Past' flags dates up to the data as-of date (2026-10-31) so prior-year comparisons stay like-for-like.
+table Date
+	lineageTag: abc79747-0073-4001-8489-bc6caf129eec
+	dataCategory: Time
+
+	column Date
+		isUnique
+		formatString: yyyy-mm-dd
+		lineageTag: 94317e85-f70b-43de-871e-f16e8a7a6850
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+	column Year
+		formatString: 0
+		lineageTag: a9f2bc22-8524-45ac-9b8d-aa2a5372452d
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Year]
+
+	column Quarter
+		lineageTag: 5393e146-ddf7-45c5-8c32-f10bfd23af91
+		isNameInferred
+		sourceColumn: [Quarter]
+
+	column 'Year Quarter'
+		lineageTag: 5e29f13d-da0b-49ae-977a-a5b350208b9d
+		isNameInferred
+		sourceColumn: [Year Quarter]
+
+	column 'Month Number'
+		isHidden
+		lineageTag: 994cbd4b-9f0c-4b6b-b9fd-2dcdfd6e8e7d
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Month Number]
+
+	column Month
+		lineageTag: f232abe5-b793-4863-b4a4-6d3149884cc8
+		isNameInferred
+		sourceColumn: [Month]
+		sortByColumn: 'Month Number'
+
+	column 'Year Month'
+		lineageTag: 9e7f79ae-412e-4eaa-9565-fcb2439afad8
+		isNameInferred
+		sourceColumn: [Year Month]
+		sortByColumn: 'Year Month Number'
+
+	column 'Year Month Number'
+		isHidden
+		lineageTag: 4d937695-d6af-449f-a550-d14c8d4081f4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Year Month Number]
+
+	column 'Month Start'
+		formatString: yyyy-mm-dd
+		lineageTag: 4b9acb77-fcf2-4e5b-9e0e-5d2703150aaf
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Month Start]
+
+	column 'Weekday Number'
+		isHidden
+		lineageTag: a9c468f4-a065-43d4-843b-0dd39caa8e79
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Weekday Number]
+
+	column Weekday
+		lineageTag: d7ecdda4-2cfb-4bcf-8828-b5c00c86182d
+		isNameInferred
+		sourceColumn: [Weekday]
+		sortByColumn: 'Weekday Number'
+
+	column 'Is Weekend'
+		lineageTag: 46f00dee-faf4-4f69-ade7-ff3fef21ed87
+		isNameInferred
+		sourceColumn: [Is Weekend]
+
+	column 'Is Past'
+		isHidden
+		lineageTag: 8aed5b80-f04d-46e3-9977-c0c8a3b14f68
+		isNameInferred
+		sourceColumn: [Is Past]
+
+	partition Date = calculated
+		mode: import
+		source =
+				VAR _AsOf = DATE(2026, 10, 31)
+				RETURN
+				ADDCOLUMNS(
+				    CALENDAR(DATE(2024, 1, 1), DATE(2026, 12, 31)),
+				    "Year", YEAR([Date]),
+				    "Quarter", "Q" & QUARTER([Date]),
+				    "Year Quarter", YEAR([Date]) & " Q" & QUARTER([Date]),
+				    "Month Number", MONTH([Date]),
+				    "Month", FORMAT([Date], "MMM"),
+				    "Year Month", FORMAT([Date], "MMM YYYY"),
+				    "Year Month Number", YEAR([Date]) * 100 + MONTH([Date]),
+				    "Month Start", DATE(YEAR([Date]), MONTH([Date]), 1),
+				    "Weekday Number", WEEKDAY([Date], 2),
+				    "Weekday", FORMAT([Date], "ddd"),
+				    "Is Weekend", WEEKDAY([Date], 2) > 5,
+				    "Is Past", [Date] <= _AsOf
+				)
+

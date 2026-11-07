@@ -1,0 +1,39 @@
+/// Deterministic pseudo-random number in [0,1) for a row index and a seed. Same inputs always give the same output, so sample data is stable across refreshes.
+expression fnRand =
+		(i as number, seed as number) as number =>
+		let
+		    x0 = Number.Mod(i * 7919 + seed * 104729 + 12345, 1000003),
+		    x1 = Number.Mod(x0 * x0 + 7 * seed + 1, 1000003),
+		    x2 = Number.Mod(x1 * x1 + i, 1000003)
+		in
+		    x2 / 1000003
+	lineageTag: 4efb55fa-1fff-46e7-bfbf-0a9bc0a40ffa
+
+/// Standard unit cost for a ProductKey (category-weighted).
+expression fnProductCost =
+		(k as number) as number =>
+		let
+		    Factors = {2.0, 0.25, 2.5, 1.2, 0.3, 0.6},
+		    f = Factors{Number.Mod(k - 1, 6)}
+		in
+		    Number.Round((10 + fnRand(k, 21) * 190) * f, 2)
+	lineageTag: d8e92965-e6cb-4ada-b794-15fbb2aa88b7
+
+/// List price for a ProductKey: unit cost plus a 30-80% markup.
+expression fnProductPrice =
+		(k as number) as number =>
+		    Number.Round(fnProductCost(k) * (1.3 + fnRand(k, 22) * 0.5), 2)
+	lineageTag: ea814c14-1a3f-4ffc-9dc0-8f0c75e841da
+
+/// Reorder point (units) for a ProductKey.
+expression fnProductReorderPoint =
+		(k as number) as number =>
+		    20 + Number.RoundDown(fnRand(k, 23) * 40)
+	lineageTag: c52a3397-ee6f-4cb5-99d8-478c7beb2cf5
+
+/// Standard purchase lead time in days for a SupplierKey.
+expression fnSupplierLeadDays =
+		(s as number) as number =>
+		    7 + Number.RoundDown(fnRand(s, 31) * 38)
+	lineageTag: 4baf7bdf-e0cc-4053-b0eb-1654d53de7e5
+

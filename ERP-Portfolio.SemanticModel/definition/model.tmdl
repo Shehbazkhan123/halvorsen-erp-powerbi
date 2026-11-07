@@ -1,0 +1,32 @@
+/// ERP portfolio model: Sales, Purchasing, Inventory, Finance (GL) and HR with conformed dimensions. Sample data generated deterministically in Power Query; data as of 2026-10-31.
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_ProTooling = ["MCP-PBIModeling","DevMode"]
+
+ref table Department
+ref table Account
+ref table Warehouse
+ref table Customer
+ref table Product
+ref table Supplier
+ref table Employee
+ref table Date
+ref table Sales
+ref table Purchases
+ref table Inventory
+ref table Finance
+ref table _Measures
+ref table 'Time View'
+ref table Metric
+
+ref cultureInfo en-US
+

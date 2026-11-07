@@ -1,0 +1,27 @@
+{
+    "visual": {
+        "name": "erpKpiCard",
+        "displayName": "ERP KPI Card (GSAP)",
+        "guid": "erpKpiCardDB2F16D1C4D7440ABE6A7786CEC020DC",
+        "visualClassName": "Visual",
+        "version": "1.1.0.0",
+        "description": "Animated KPI card: count-up headline, comparison badge (vs target or prior year) and a self-drawing sparkline with hover readout. Animations by GSAP.",
+        "supportUrl": "mailto:shehbazkhanofficial@gmail.com",
+        "gitHubUrl": ""
+    },
+    "apiVersion": "5.11.1",
+    "author": {
+        "name": "Shehbaz Khan",
+        "email": "shehbazkhanofficial@gmail.com"
+    },
+    "assets": {
+        "icon": "assets/icon.png"
+    },
+    "externalJS": null,
+    "style": "style/visual.less",
+    "capabilities": "capabilities.json",
+    "dependencies": null,
+    "stringResources": [],
+    "version": "1.1.0.0"
+}
+

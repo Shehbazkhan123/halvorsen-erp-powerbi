@@ -1,0 +1,107 @@
+{
+    "dataRoles": [
+        {
+            "displayName": "Trend axis",
+            "name": "category",
+            "kind": "Grouping",
+            "description": "Optional. A period column such as Date[Year Month]. Draws the sparkline; the headline shows the latest period with data."
+        },
+        {
+            "displayName": "Value",
+            "name": "value",
+            "kind": "Measure",
+            "description": "The KPI measure shown as the headline number."
+        },
+        {
+            "displayName": "Comparison",
+            "name": "comparison",
+            "kind": "Measure",
+            "description": "Optional. Target, budget or prior-year measure. Drives the change badge."
+        }
+    ],
+    "dataViewMappings": [
+        {
+            "conditions": [
+                { "category": { "max": 1 }, "value": { "max": 1 }, "comparison": { "max": 1 } }
+            ],
+            "categorical": {
+                "categories": {
+                    "for": { "in": "category" },
+                    "dataReductionAlgorithm": { "top": { "count": 1000 } }
+                },
+                "values": {
+                    "select": [
+                        { "bind": { "to": "value" } },
+                        { "bind": { "to": "comparison" } }
+                    ]
+                }
+            }
+        }
+    ],
+    "objects": {
+        "title": {
+            "properties": {
+                "show": { "type": { "bool": true } },
+                "text": { "type": { "text": true } },
+                "fontSize": { "type": { "formatting": { "fontSize": true } } },
+                "color": { "type": { "fill": { "solid": { "color": true } } } }
+            }
+        },
+        "valueText": {
+            "properties": {
+                "fontSize": { "type": { "formatting": { "fontSize": true } } },
+                "color": { "type": { "fill": { "solid": { "color": true } } } },
+                "displayUnits": { "type": { "formatting": { "labelDisplayUnits": true } } },
+                "decimalPlaces": { "type": { "numeric": true } },
+                "headlineMode": {
+                    "type": {
+                        "enumeration": [
+                            { "value": "latest", "displayName": "Latest period" },
+                            { "value": "sum", "displayName": "Sum of periods" },
+                            { "value": "average", "displayName": "Average of periods" }
+                        ]
+                    }
+                }
+            }
+        },
+        "comparisonText": {
+            "properties": {
+                "show": { "type": { "bool": true } },
+                "label": { "type": { "text": true } },
+                "higherIsBetter": { "type": { "bool": true } },
+                "goodColor": { "type": { "fill": { "solid": { "color": true } } } },
+                "badColor": { "type": { "fill": { "solid": { "color": true } } } },
+                "labelColor": { "type": { "fill": { "solid": { "color": true } } } }
+            }
+        },
+        "sparkline": {
+            "properties": {
+                "show": { "type": { "bool": true } },
+                "color": { "type": { "fill": { "solid": { "color": true } } } },
+                "showArea": { "type": { "bool": true } },
+                "pulse": { "type": { "bool": true } }
+            }
+        },
+        "animation": {
+            "properties": {
+                "show": { "type": { "bool": true } },
+                "duration": { "type": { "numeric": true } },
+                "easing": {
+                    "type": {
+                        "enumeration": [
+                            { "value": "power3.out", "displayName": "Smooth" },
+                            { "value": "expo.out", "displayName": "Snappy" },
+                            { "value": "back.out(1.6)", "displayName": "Overshoot" },
+                            { "value": "elastic.out(1, 0.6)", "displayName": "Elastic" },
+                            { "value": "none", "displayName": "Linear" }
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    "sorting": { "default": {} },
+    "supportsLandingPage": true,
+    "supportsEmptyDataView": true,
+    "privileges": []
+}

@@ -1,0 +1,11 @@
+{
+  "name": "erp-report-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build-report-pages.mjs"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.4"
+  }
+}

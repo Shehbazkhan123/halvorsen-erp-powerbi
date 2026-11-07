@@ -1,0 +1,135 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.0.0/schema.json",
+  "themeCollection": {
+    "baseTheme": {
+      "name": "CY25SU11",
+      "reportVersionAtImport": {
+        "visual": "2.4.0",
+        "report": "3.0.0",
+        "page": "2.3.0"
+      },
+      "type": "SharedResources"
+    },
+    "customTheme": {
+      "name": "ERP-Portfolio-Theme.json",
+      "reportVersionAtImport": {
+        "visual": "2.4.0",
+        "report": "3.0.0",
+        "page": "2.3.0"
+      },
+      "type": "RegisteredResources"
+    }
+  },
+  "objects": {
+    "section": [
+      {
+        "properties": {
+          "verticalAlignment": {
+            "expr": {
+              "Literal": {
+                "Value": "'Top'"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "outspacePane": [
+      {
+        "properties": {
+          "expanded": {
+            "expr": {
+              "Literal": {
+                "Value": "false"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "resourcePackages": [
+    {
+      "name": "SharedResources",
+      "type": "SharedResources",
+      "items": [
+        {
+          "name": "CY25SU11",
+          "path": "BaseThemes/CY25SU11.json",
+          "type": "BaseTheme"
+        }
+      ]
+    },
+    {
+      "name": "RegisteredResources",
+      "type": "RegisteredResources",
+      "items": [
+        {
+          "name": "ERP-Portfolio-Theme.json",
+          "path": "ERP-Portfolio-Theme.json",
+          "type": "CustomTheme"
+        },
+        {
+          "name": "bg-overview.png",
+          "path": "bg-overview.png",
+          "type": "Image"
+        },
+        {
+          "name": "bg-sales.png",
+          "path": "bg-sales.png",
+          "type": "Image"
+        },
+        {
+          "name": "bg-customers.png",
+          "path": "bg-customers.png",
+          "type": "Image"
+        },
+        {
+          "name": "bg-operations.png",
+          "path": "bg-operations.png",
+          "type": "Image"
+        },
+        {
+          "name": "bg-finance.png",
+          "path": "bg-finance.png",
+          "type": "Image"
+        },
+        {
+          "name": "bg-people.png",
+          "path": "bg-people.png",
+          "type": "Image"
+        }
+      ]
+    },
+    {
+      "name": "erpKpiCardDB2F16D1C4D7440ABE6A7786CEC020DC",
+      "type": "CustomVisual",
+      "items": [
+        {
+          "name": "erpKpiCardDB2F16D1C4D7440ABE6A7786CEC020DC.pbiviz.json",
+          "path": "erpKpiCardDB2F16D1C4D7440ABE6A7786CEC020DC.pbiviz.json",
+          "type": "CustomVisualMetadata"
+        }
+      ]
+    },
+    {
+      "name": "insightText9B2CAF377804430CB0623EF097A0FD30",
+      "type": "CustomVisual",
+      "items": [
+        {
+          "name": "insightText9B2CAF377804430CB0623EF097A0FD30.pbiviz.json",
+          "path": "insightText9B2CAF377804430CB0623EF097A0FD30.pbiviz.json",
+          "type": "CustomVisualMetadata"
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "useStylableVisualContainerHeader": true,
+    "exportDataMode": "AllowSummarized",
+    "defaultDrillFilterOtherVisuals": true,
+    "allowChangeFilterTypes": true,
+    "useEnhancedTooltips": true,
+    "useDefaultAggregateDisplayName": true
+  }
+}

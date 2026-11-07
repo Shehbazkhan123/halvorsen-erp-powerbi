@@ -1,0 +1,33 @@
+/// Disconnected switcher table for [Selected Metric]. Use Metric[Metric] in a slicer.
+table Metric
+	lineageTag: dd383115-8865-4939-aca2-eb85822a8c43
+
+	column Metric
+		lineageTag: 00574448-405b-491d-8267-b4c448d95160
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Metric]
+		sortByColumn: 'Metric Order'
+
+	column 'Metric Order'
+		isHidden
+		lineageTag: 9f58b58e-30d9-4ade-94cc-c671b4e25f82
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Metric Order]
+
+	partition Metric = calculated
+		mode: import
+		source =
+				DATATABLE (
+				    "Metric", STRING,
+				    "Metric Order", INTEGER,
+				    {
+				        { "Revenue", 1 },
+				        { "Gross Profit", 2 },
+				        { "Orders", 3 },
+				        { "Units Sold", 4 },
+				        { "Avg Order Value", 5 }
+				    }
+				)
+

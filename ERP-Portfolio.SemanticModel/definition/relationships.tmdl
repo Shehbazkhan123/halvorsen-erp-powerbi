@@ -1,0 +1,74 @@
+relationship 'Sales_Order Date_Date_Date'
+	fromColumn: Sales.'Order Date'
+	toColumn: Date.Date
+
+relationship 'Sales_Ship Date_Date_Date'
+	isActive: false
+	fromColumn: Sales.'Ship Date'
+	toColumn: Date.Date
+
+relationship Sales_CustomerKey_Customer_CustomerKey
+	fromColumn: Sales.CustomerKey
+	toColumn: Customer.CustomerKey
+
+relationship Sales_ProductKey_Product_ProductKey
+	fromColumn: Sales.ProductKey
+	toColumn: Product.ProductKey
+
+relationship Sales_EmployeeKey_Employee_EmployeeKey
+	fromColumn: Sales.EmployeeKey
+	toColumn: Employee.EmployeeKey
+
+relationship Sales_WarehouseKey_Warehouse_WarehouseKey
+	fromColumn: Sales.WarehouseKey
+	toColumn: Warehouse.WarehouseKey
+
+relationship 'Purchases_Order Date_Date_Date'
+	fromColumn: Purchases.'Order Date'
+	toColumn: Date.Date
+
+relationship 'Purchases_Received Date_Date_Date'
+	isActive: false
+	fromColumn: Purchases.'Received Date'
+	toColumn: Date.Date
+
+relationship Purchases_SupplierKey_Supplier_SupplierKey
+	fromColumn: Purchases.SupplierKey
+	toColumn: Supplier.SupplierKey
+
+relationship Purchases_ProductKey_Product_ProductKey
+	fromColumn: Purchases.ProductKey
+	toColumn: Product.ProductKey
+
+relationship Purchases_WarehouseKey_Warehouse_WarehouseKey
+	fromColumn: Purchases.WarehouseKey
+	toColumn: Warehouse.WarehouseKey
+
+relationship 'Inventory_Snapshot Date_Date_Date'
+	fromColumn: Inventory.'Snapshot Date'
+	toColumn: Date.Date
+
+relationship Inventory_ProductKey_Product_ProductKey
+	fromColumn: Inventory.ProductKey
+	toColumn: Product.ProductKey
+
+relationship Inventory_WarehouseKey_Warehouse_WarehouseKey
+	fromColumn: Inventory.WarehouseKey
+	toColumn: Warehouse.WarehouseKey
+
+relationship 'Finance_Period Date_Date_Date'
+	fromColumn: Finance.'Period Date'
+	toColumn: Date.Date
+
+relationship Finance_AccountKey_Account_AccountKey
+	fromColumn: Finance.AccountKey
+	toColumn: Account.AccountKey
+
+relationship Finance_DepartmentKey_Department_DepartmentKey
+	fromColumn: Finance.DepartmentKey
+	toColumn: Department.DepartmentKey
+
+relationship Employee_DepartmentKey_Department_DepartmentKey
+	fromColumn: Employee.DepartmentKey
+	toColumn: Department.DepartmentKey
+
