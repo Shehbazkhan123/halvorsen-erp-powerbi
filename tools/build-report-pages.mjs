@@ -43,7 +43,7 @@ const C = {
     good: "#34D399", bad: "#FB7185"
 };
 const BRAND = "Halvorsen Supply Co."; // fictional company
-const AS_OF = "Fictional company · generated sample data  ·  Data as of 31 Oct 2026";
+const AS_OF = "Fictional company · data as of 31 Oct 2026";
 
 // 24x24 line icons (stroke only), drawn in the sidebar.
 const ICONS = {
@@ -148,17 +148,27 @@ function slicer(name, pos, field, defaultValue, syncGroupName) {
     });
 }
 
-function kpiCard(name, pos, accent, { value, comparison, axis = col("Date", "Year Month"), mode = "latest", label }) {
+// headline: optional whole-period measure (ratios, distinct counts) shown instead of summing/averaging the monthly points.
+function kpiCard(name, pos, accent, { value, comparison, headline, axis = col("Date", "Year Month"), mode = "latest", label }) {
     const objects = {
         title: [{ properties: { fontSize: num(9), color: color(C.muted) } }],
-        valueText: [{ properties: { fontSize: num(24), color: color(C.text), ...(axis ? { headlineMode: str(mode) } : {}) } }],
+        valueText: [{ properties: {
+            fontSize: num(24), color: color(C.text),
+            ...(axis ? { headlineMode: str(mode) } : {}),
+            // Pass the measure's format explicitly: Power BI does not always hand it to custom visuals.
+            ...(FORMATS[value.name] ? { valueFormat: str(FORMATS[value.name]) } : {})
+        } }],
         comparisonText: [{ properties: { labelColor: color(C.muted), goodColor: color(C.good), badColor: color(C.bad), ...(label ? { label: str(label) } : {}) } }],
         sparkline: [{ properties: { color: color(accent) } }]
     };
     return container(name, pos, {
         visualType: KPI_VISUAL,
         query: {
-            queryState: queryState({ category: axis ? [axis] : [], value: [value], comparison: comparison ? [comparison] : [] }),
+            queryState: queryState({
+                category: axis ? [axis] : [], value: [value],
+                comparison: comparison ? [comparison] : [],
+                headline: headline && axis ? [headline] : []
+            }),
             ...(axis ? { sortDefinition: sortBy(axis, "Ascending") } : {})
         },
         objects,
@@ -228,9 +238,9 @@ const pages = [
         question: "How is the business performing this year?", story: "Story Overview",
         cards: [
             { id: "revenue", value: msr("Revenue"), comparison: msr("Revenue PY"), mode: "sum", label: "vs PY" },
-            { id: "gm", value: msr("Gross Margin %"), mode: "average" },
+            { id: "gm", value: msr("Gross Margin %"), headline: msr("Gross Margin % (Period)") },
             { id: "netincome", value: msr("Net Income"), comparison: msr("Net Income Budget"), mode: "sum", label: "vs budget" },
-            { id: "supplierontime", value: msr("Supplier On-Time %"), mode: "average" },
+            { id: "supplierontime", value: msr("Supplier On-Time %"), headline: msr("Supplier On-Time % (Period)") },
             { id: "inventory", value: msr("Inventory Value"), mode: "latest" },
             { id: "headcount", value: msr("Headcount"), mode: "latest" }
         ],
@@ -254,7 +264,7 @@ const pages = [
             { id: "revenue", value: msr("Revenue"), comparison: msr("Revenue PY"), mode: "sum", label: "vs PY" },
             { id: "grossprofit", value: msr("Gross Profit"), mode: "sum" },
             { id: "orders", value: msr("Orders"), mode: "sum" },
-            { id: "aov", value: msr("Avg Order Value"), mode: "average" }
+            { id: "aov", value: msr("Avg Order Value"), headline: msr("Avg Order Value (Period)") }
         ],
         noFilterFrom: ["sales_timeview"], // Time View drives the charts; cards and the narrative keep their own logic
         widths: [584, 576],
@@ -270,14 +280,14 @@ const pages = [
         controls: (p, x, y) => [
             metricSlicer(`${p}_metric`, { x, y, width: SIDE_W, height: (KPI.h - GAP) / 2 }),
             hint(`${p}_hint`, { x: x + 12, y: y + (KPI.h + GAP) / 2 + 10, width: SIDE_W - 24, height: (KPI.h - GAP) / 2 - 20 },
-                "Switch the metric to re-plot every customer. Drag a box on the scatter to filter the page.")
+                "Switch the metric to re-plot every customer.")
         ],
         controlPanels: 2,
         cards: [
-            { id: "active", value: msr("Active Customers"), mode: "average" },
-            { id: "aov", value: msr("Avg Order Value"), mode: "average" },
+            { id: "active", value: msr("Active Customers"), headline: msr("Active Customers (Period)") },
+            { id: "aov", value: msr("Avg Order Value"), headline: msr("Avg Order Value (Period)") },
             { id: "revenue", value: msr("Revenue"), comparison: msr("Revenue PY"), mode: "sum", label: "vs PY" },
-            { id: "gm", value: msr("Gross Margin %"), mode: "average" }
+            { id: "gm", value: msr("Gross Margin %"), headline: msr("Gross Margin % (Period)") }
         ],
         widths: [720, 440],
         charts: pos => [
@@ -293,8 +303,8 @@ const pages = [
         question: "Are suppliers and stock keeping up with demand?", story: "Story Operations",
         cards: [
             { id: "spend", value: msr("Purchase Spend"), mode: "sum" },
-            { id: "supplierontime", value: msr("Supplier On-Time %"), mode: "average" },
-            { id: "leadtime", value: msr("Avg Lead Time (Days)"), mode: "average" },
+            { id: "supplierontime", value: msr("Supplier On-Time %"), headline: msr("Supplier On-Time % (Period)") },
+            { id: "leadtime", value: msr("Avg Lead Time (Days)"), headline: msr("Avg Lead Time (Days) (Period)") },
             { id: "inventory", value: msr("Inventory Value"), mode: "latest" },
             { id: "belowrop", value: msr("Items Below Reorder Point"), mode: "latest" }
         ],
@@ -313,7 +323,7 @@ const pages = [
         question: "Are we delivering profit against budget?", story: "Story Finance",
         cards: [
             { id: "netincome", value: msr("Net Income"), comparison: msr("Net Income Budget"), mode: "sum", label: "vs budget" },
-            { id: "netmargin", value: msr("Net Margin %"), mode: "average" },
+            { id: "netmargin", value: msr("Net Margin %"), headline: msr("Net Margin % (Period)") },
             { id: "opex", value: msr("GL Operating Expenses"), mode: "sum" },
             { id: "favvar", value: msr("Budget Variance (Favorable)"), mode: "sum" }
         ],
@@ -365,9 +375,9 @@ function buildPage(page) {
     });
 
     // Header: title + guiding question, data note, year switcher.
-    add(textbox(`${page.name}_title`, { x: X0, y: 6, width: 640, height: 64 }, [
+    add(textbox(`${page.name}_title`, { x: X0, y: 2, width: 640, height: 72 }, [
         { textRuns: [run(BRAND.toUpperCase(), "8pt", "bold", a)] },
-        { textRuns: [run(page.title, "18pt", "bold", C.text)] },
+        { textRuns: [run(page.title, "17pt", "bold", C.text)] },
         { textRuns: [run(page.question, "10pt", null, C.muted)] }
     ]));
     add(textbox(`${page.name}_asof`, { x: X1 - 170 - GAP - 300, y: 34, width: 300, height: 18 },
@@ -481,6 +491,20 @@ const writeJson = async (path, obj) => {
     await writeFile(path, JSON.stringify(obj, null, 2) + "\n", "utf8");
 };
 const bgName = page => `bg-${page.name}.png`;
+
+// Static format strings of every measure in _Measures.tmdl (measures with only a dynamic format are skipped).
+async function measureFormats() {
+    const text = (await readFile(join(tablesDir, "_Measures.tmdl"), "utf8")).replace(/\r\n/g, "\n");
+    const formats = {};
+    const blocks = text.split(/\n(?=\tmeasure\s)/);
+    for (const block of blocks) {
+        const name = /^\tmeasure\s+(?:'([^']+)'|([^\s=]+))/.exec(block);
+        const fmt = /^\t\tformatString:\s*(.+?)\s*$/m.exec(block);
+        if (name && fmt) formats[name[1] ?? name[2]] = fmt[1];
+    }
+    return formats;
+}
+const FORMATS = await measureFormats();
 
 const built = pages.map(p => ({ page: p, ...buildPage(p) }));
 

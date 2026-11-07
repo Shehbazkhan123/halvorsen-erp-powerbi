@@ -49,6 +49,24 @@
               "nativeQueryRef": "Avg Order Value"
             }
           ]
+        },
+        "headline": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Avg Order Value (Period)"
+                }
+              },
+              "queryRef": "_Measures.Avg Order Value (Period)",
+              "nativeQueryRef": "Avg Order Value (Period)"
+            }
+          ]
         }
       },
       "sortDefinition": {
@@ -119,7 +137,14 @@
             "headlineMode": {
               "expr": {
                 "Literal": {
-                  "Value": "'average'"
+                  "Value": "'latest'"
+                }
+              }
+            },
+            "valueFormat": {
+              "expr": {
+                "Literal": {
+                  "Value": "'\\$#,0.00'"
                 }
               }
             }

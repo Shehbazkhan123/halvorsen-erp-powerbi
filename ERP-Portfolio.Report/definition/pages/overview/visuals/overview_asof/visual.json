@@ -20,7 +20,7 @@
                 "horizontalTextAlignment": "right",
                 "textRuns": [
                   {
-                    "value": "Fictional company · generated sample data  ·  Data as of 31 Oct 2026",
+                    "value": "Fictional company · data as of 31 Oct 2026",
                     "textStyle": {
                       "fontSize": "8pt",
                       "color": "#64748B"

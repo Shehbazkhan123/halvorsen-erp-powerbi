@@ -524,6 +524,42 @@ table _Measures
 		displayFolder: 0. Story
 		lineageTag: fd847863-051f-40a1-af6f-1773ce2502a1
 
+	/// Gross Margin % for the whole selected period, ignoring any date grouping in the visual (e.g. Year Month). Used as the KPI card headline above a monthly sparkline.
+	measure 'Gross Margin % (Period)' = CALCULATE ( [Gross Margin %], ALLSELECTED ( 'Date' ) )
+		formatString: 0.0%
+		displayFolder: 0. Period
+		lineageTag: afe4ae04-3e1a-47c8-96ce-f4414ff70f8a
+
+	/// Supplier On-Time % for the whole selected period, ignoring date grouping in the visual.
+	measure 'Supplier On-Time % (Period)' = CALCULATE ( [Supplier On-Time %], ALLSELECTED ( 'Date' ) )
+		formatString: 0.0%
+		displayFolder: 0. Period
+		lineageTag: bebd5e91-dcf9-4e14-bd5e-df2158f02fe2
+
+	/// Average order value for the whole selected period, ignoring date grouping in the visual.
+	measure 'Avg Order Value (Period)' = CALCULATE ( [Avg Order Value], ALLSELECTED ( 'Date' ) )
+		formatString: \$#,0.00
+		displayFolder: 0. Period
+		lineageTag: 2e51c2e9-ea0f-42f6-9dcd-30843f663631
+
+	/// Distinct customers who ordered in the whole selected period, ignoring date grouping in the visual.
+	measure 'Active Customers (Period)' = CALCULATE ( [Active Customers], ALLSELECTED ( 'Date' ) )
+		formatString: #,0
+		displayFolder: 0. Period
+		lineageTag: f5ba34dc-c89e-41ed-a15a-d9d030e14f81
+
+	/// Average purchase lead time for the whole selected period, ignoring date grouping in the visual.
+	measure 'Avg Lead Time (Days) (Period)' = CALCULATE ( [Avg Lead Time (Days)], ALLSELECTED ( 'Date' ) )
+		formatString: #,0.0
+		displayFolder: 0. Period
+		lineageTag: 94d13802-016b-4397-b3ac-7140fc03316d
+
+	/// Net margin for the whole selected period, ignoring date grouping in the visual.
+	measure 'Net Margin % (Period)' = CALCULATE ( [Net Margin %], ALLSELECTED ( 'Date' ) )
+		formatString: 0.0%
+		displayFolder: 0. Period
+		lineageTag: 9bedebfc-5f14-4a20-b42f-a9deffa4c613
+
 	column Placeholder
 		isHidden
 		lineageTag: 6227117b-3d7e-415c-bc2a-0dbca295baf7

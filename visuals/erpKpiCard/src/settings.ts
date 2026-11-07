@@ -51,9 +51,17 @@ class ValueCard extends Card {
         }
     });
 
+    valueFormat = new formattingSettings.TextInput({
+        name: "valueFormat",
+        displayName: "Format string (optional)",
+        description: "Overrides the measure's format, e.g. 0.0% or \\$#,0. Leave empty to use the format Power BI provides.",
+        value: "",
+        placeholder: "Measure format"
+    });
+
     name = "valueText";
     displayName = "Value";
-    slices: Slice[] = [this.headlineMode, this.fontSize, this.color, this.displayUnits, this.decimalPlaces];
+    slices: Slice[] = [this.headlineMode, this.fontSize, this.color, this.displayUnits, this.decimalPlaces, this.valueFormat];
 }
 
 class ComparisonCard extends Card {

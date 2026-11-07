@@ -49,6 +49,24 @@
               "nativeQueryRef": "Active Customers"
             }
           ]
+        },
+        "headline": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Active Customers (Period)"
+                }
+              },
+              "queryRef": "_Measures.Active Customers (Period)",
+              "nativeQueryRef": "Active Customers (Period)"
+            }
+          ]
         }
       },
       "sortDefinition": {
@@ -119,7 +137,14 @@
             "headlineMode": {
               "expr": {
                 "Literal": {
-                  "Value": "'average'"
+                  "Value": "'latest'"
+                }
+              }
+            },
+            "valueFormat": {
+              "expr": {
+                "Literal": {
+                  "Value": "'#,0'"
                 }
               }
             }

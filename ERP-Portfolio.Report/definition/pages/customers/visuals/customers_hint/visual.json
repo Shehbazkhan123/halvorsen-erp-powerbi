@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Switch the metric to re-plot every customer. Drag a box on the scatter to filter the page.",
+                    "value": "Switch the metric to re-plot every customer.",
                     "textStyle": {
                       "fontSize": "9pt",
                       "color": "#94A3B8"

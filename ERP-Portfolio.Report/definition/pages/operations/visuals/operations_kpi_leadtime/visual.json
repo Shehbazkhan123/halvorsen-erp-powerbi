@@ -49,6 +49,24 @@
               "nativeQueryRef": "Avg Lead Time (Days)"
             }
           ]
+        },
+        "headline": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Avg Lead Time (Days) (Period)"
+                }
+              },
+              "queryRef": "_Measures.Avg Lead Time (Days) (Period)",
+              "nativeQueryRef": "Avg Lead Time (Days) (Period)"
+            }
+          ]
         }
       },
       "sortDefinition": {
@@ -119,7 +137,14 @@
             "headlineMode": {
               "expr": {
                 "Literal": {
-                  "Value": "'average'"
+                  "Value": "'latest'"
+                }
+              }
+            },
+            "valueFormat": {
+              "expr": {
+                "Literal": {
+                  "Value": "'#,0.0'"
                 }
               }
             }

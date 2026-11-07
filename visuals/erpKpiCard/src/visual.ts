@@ -207,10 +207,12 @@ export class Visual implements IVisual {
         const compCol = columns.find(c => c.source.roles?.["comparison"]);
         const category = categorical.categories?.[0];
 
+        // Format: explicit setting > column format > per-value (dynamic/calc-group) format > default.
+        const dynamicFormat = (valueCol.objects || []).map(o => o?.["general"]?.["formatString"]).find(f => typeof f === "string") as string | undefined;
         const base = {
             title: valueCol.source.displayName,
             comparisonName: compCol?.source.displayName ?? "",
-            format: valueCol.source.format || "#,0.##"
+            format: this.formattingSettings.valueCard.valueFormat.value || valueCol.source.format || dynamicFormat || "#,0.##"
         };
 
         if (!category) {
@@ -242,6 +244,14 @@ export class Visual implements IVisual {
         const first = points[0];
         const last = points[points.length - 1];
         const mode = String(this.formattingSettings.valueCard.headlineMode.value?.value ?? "latest");
+
+        // A Headline measure (whole-period value, same on every row) replaces the computed headline.
+        // This is the correct total for ratios and distinct counts, which can't be summed or averaged.
+        const headCol = columns.find(c => c.source.roles?.["headline"]);
+        const headline = headCol ? headCol.values.map(toNumber).find(v => v !== null) ?? null : null;
+        if (headline !== null) {
+            return { ...base, value: headline, comparison: null, caption: `${first.label} – ${last.label}`, points };
+        }
 
         if (mode === "latest" || points.length === 1) {
             const lastIndex = category.values.length - 1 - [...valueCol.values].reverse().findIndex(v => toNumber(v) !== null);

@@ -122,6 +122,13 @@
                   "Value": "'sum'"
                 }
               }
+            },
+            "valueFormat": {
+              "expr": {
+                "Literal": {
+                  "Value": "'#,0'"
+                }
+              }
             }
           }
         }

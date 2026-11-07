@@ -49,6 +49,24 @@
               "nativeQueryRef": "Gross Margin %"
             }
           ]
+        },
+        "headline": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Gross Margin % (Period)"
+                }
+              },
+              "queryRef": "_Measures.Gross Margin % (Period)",
+              "nativeQueryRef": "Gross Margin % (Period)"
+            }
+          ]
         }
       },
       "sortDefinition": {
@@ -119,7 +137,14 @@
             "headlineMode": {
               "expr": {
                 "Literal": {
-                  "Value": "'average'"
+                  "Value": "'latest'"
+                }
+              }
+            },
+            "valueFormat": {
+              "expr": {
+                "Literal": {
+                  "Value": "'0.0%'"
                 }
               }
             }

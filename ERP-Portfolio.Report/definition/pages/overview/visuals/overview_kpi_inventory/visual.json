@@ -122,6 +122,13 @@
                   "Value": "'latest'"
                 }
               }
+            },
+            "valueFormat": {
+              "expr": {
+                "Literal": {
+                  "Value": "'\\$#,0;(\\$#,0);\\$#,0'"
+                }
+              }
             }
           }
         }

@@ -17,12 +17,18 @@
             "name": "comparison",
             "kind": "Measure",
             "description": "Optional. Target, budget or prior-year measure. Drives the change badge."
+        },
+        {
+            "displayName": "Headline (period total)",
+            "name": "headline",
+            "kind": "Measure",
+            "description": "Optional. A measure that returns the whole-period value (e.g. CALCULATE([Margin %], ALLSELECTED('Date'))). When set, it replaces the headline number; the sparkline still uses Value."
         }
     ],
     "dataViewMappings": [
         {
             "conditions": [
-                { "category": { "max": 1 }, "value": { "max": 1 }, "comparison": { "max": 1 } }
+                { "category": { "max": 1 }, "value": { "max": 1 }, "comparison": { "max": 1 }, "headline": { "max": 1 } }
             ],
             "categorical": {
                 "categories": {
@@ -32,13 +38,19 @@
                 "values": {
                     "select": [
                         { "bind": { "to": "value" } },
-                        { "bind": { "to": "comparison" } }
+                        { "bind": { "to": "comparison" } },
+                        { "bind": { "to": "headline" } }
                     ]
                 }
             }
         }
     ],
     "objects": {
+        "general": {
+            "properties": {
+                "formatString": { "type": { "formatting": { "formatString": true } } }
+            }
+        },
         "title": {
             "properties": {
                 "show": { "type": { "bool": true } },
@@ -53,6 +65,7 @@
                 "color": { "type": { "fill": { "solid": { "color": true } } } },
                 "displayUnits": { "type": { "formatting": { "labelDisplayUnits": true } } },
                 "decimalPlaces": { "type": { "numeric": true } },
+                "valueFormat": { "type": { "text": true } },
                 "headlineMode": {
                     "type": {
                         "enumeration": [

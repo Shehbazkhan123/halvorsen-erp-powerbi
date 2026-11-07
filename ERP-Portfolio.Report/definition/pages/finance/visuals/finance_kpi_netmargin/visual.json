@@ -49,6 +49,24 @@
               "nativeQueryRef": "Net Margin %"
             }
           ]
+        },
+        "headline": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Net Margin % (Period)"
+                }
+              },
+              "queryRef": "_Measures.Net Margin % (Period)",
+              "nativeQueryRef": "Net Margin % (Period)"
+            }
+          ]
         }
       },
       "sortDefinition": {
@@ -119,7 +137,14 @@
             "headlineMode": {
               "expr": {
                 "Literal": {
-                  "Value": "'average'"
+                  "Value": "'latest'"
+                }
+              }
+            },
+            "valueFormat": {
+              "expr": {
+                "Literal": {
+                  "Value": "'0.0%'"
                 }
               }
             }

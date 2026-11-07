@@ -3,9 +3,9 @@
   "name": "finance_title",
   "position": {
     "x": 88,
-    "y": 6,
+    "y": 2,
     "z": 12000,
-    "height": 64,
+    "height": 72,
     "width": 640,
     "tabOrder": 12000
   },
@@ -33,7 +33,7 @@
                   {
                     "value": "Financial results",
                     "textStyle": {
-                      "fontSize": "18pt",
+                      "fontSize": "17pt",
                       "fontWeight": "bold",
                       "color": "#F8FAFC"
                     }
